@@ -20,7 +20,9 @@ def _substitute_env(text: str, env: dict) -> str:
 
 def load_yaml_with_env(path: Path, env: dict) -> dict:
     substituted = _substitute_env(path.read_text(), env)
+    print(f"[blue]Loaded config:[/blue]\n{substituted}")
     return yaml.safe_load(substituted)
+
 
 
 def materialize_dataset_yaml(src: Path, env: dict) -> Path:
