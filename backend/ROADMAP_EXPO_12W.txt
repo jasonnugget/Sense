@@ -1,0 +1,300 @@
+# Threat Detection Expo Roadmap (12 Weeks)
+
+## A) Demo Goal
+At the expo, we will show a live camera connected to a Python backend that samples frames, runs YOLO object detection, converts detections into rule-based risk alerts, and pushes alerts in real time to a React dashboard using SSE. When an incident is created or escalates, the backend calls OpenAI to generate a short contextual summary (backend-only, no frontend API keys), stores it, and shows it on the incident panel.
+
+## B) Architecture (Text Diagram)
+```text
+[Camera/Webcam/Video Source]
+            |
+            v
+[FastAPI + OpenCV Frame Sampler]
+            |
+            v
+[YOLO Inference Runtime (Python)]
+            |
+            v
+[Risk Evaluation Layer (rules + incident state machine)]
+      |                          |
+      |                          v
+      |                 [LLM Summary Service (OpenAI, backend-only)]
+      |                          |
+      v                          v
+[PostgreSQL: detections/incidents/alerts/summaries/audit]
+            |
+            +------------------------------+
+                                           |
+                                           v
+                     [SSE /api/stream/alerts]
+                                           |
+                                           v
+                     [React + TypeScript Dashboard]
+                     - live alerts
+                     - incident list/detail
+                     - ack/resolve workflow
+```
+
+## C) 12-Week Roadmap (6 Phases x 2 Weeks)
+
+### Phase 1 (Weeks 1-2): Foundation + Shared Contracts
+**Goals**
+- Align all teams on interfaces and local setup.
+- Create runnable skeletons with mock data.
+
+**Deliverables**
+- FastAPI skeleton (`/health`, `/version`)
+- React dashboard shell
+- Detection/incident JSON contracts frozen
+
+**Definition of Done**
+- [ ] `docker compose up` runs backend + frontend
+- [ ] `/health` returns 200
+- [ ] Frontend renders mock alert events
+
+**Tasks by Team**
+- Vision/Data: class taxonomy + CVAT labeling guide
+- Backend: Pydantic schemas + mock HTTP/SSE endpoints
+- Frontend: dashboard layout + mock SSE listener
+
+**Integration checkpoint**
+- Frontend consumes backend mock SSE events successfully.
+
+**Risks + mitigations**
+- Interface drift -> freeze schema by end of week 1.
+- Setup issues -> single shared README with exact commands.
+
+---
+
+### Phase 2 (Weeks 3-4): First End-to-End Detection Loop
+**Goals**
+- Replace mocks with live YOLO detections.
+- Get first real alerts flowing to dashboard.
+
+**Deliverables**
+- Camera/video source connected
+- YOLO detections normalized to shared schema
+- Basic incident manager (in-memory acceptable this phase)
+
+**Definition of Done**
+- [ ] Real detections appear in UI in under 3 seconds
+- [ ] Required detection fields always present
+- [ ] One known demo video works end-to-end
+
+**Tasks by Team**
+- Vision/Data: label first dataset + baseline YOLO model
+- Backend: OpenCV ingest + YOLO wrapper + normalization
+- Frontend: real-time alert list via SSE
+
+**Integration checkpoint**
+- Live camera -> backend -> SSE -> frontend verified.
+
+**Risks + mitigations**
+- Weak model quality -> limit classes for initial demo.
+- FPS instability -> fixed sampling strategy.
+
+---
+
+### Phase 3 (Weeks 5-6): Risk Engine + PostgreSQL
+**Goals**
+- Add stable rule-based incident logic.
+- Persist incident history and statuses.
+
+**Deliverables**
+- Risk engine with severity + cooldown
+- PostgreSQL schema and incident endpoints
+- Incident lifecycle: open -> acknowledged -> resolved
+
+**Definition of Done**
+- [ ] Incident state transitions work
+- [ ] Data persists after restart
+- [ ] Alert spam reduced by temporal rules
+
+**Tasks by Team**
+- Vision/Data: threshold recommendations + FP analysis
+- Backend: risk rules + DB models/migrations + REST endpoints
+- Frontend: incident filters + status action UI
+
+**Integration checkpoint**
+- Persisted incidents visible and actionable in dashboard.
+
+**Risks + mitigations**
+- DB complexity -> keep minimal schema only.
+- Too many false alerts -> tune thresholds + cooldown.
+
+---
+
+### Phase 4 (Weeks 7-8): LLM Summary + Operator Workflow
+**Goals**
+- Add optional contextual summaries on incident trigger only.
+
+**Deliverables**
+- Backend-only OpenAI summary service
+- Summary shown in incident detail panel
+- Timeout/fallback behavior
+
+**Definition of Done**
+- [ ] API key stored only in backend env
+- [ ] Summary triggers only on create/escalate
+- [ ] Alert publishing is not blocked by LLM latency
+
+**Tasks by Team**
+- Vision/Data: improved checkpoint + class reliability check
+- Backend: async summary service + store summary in DB
+- Frontend: summary panel with loading/error states
+
+**Integration checkpoint**
+- New incidents show optional summary without blocking live alerts.
+
+**Risks + mitigations**
+- LLM latency -> async background job + timeout.
+- Hallucination -> prompt from structured detections only.
+
+---
+
+### Phase 5 (Weeks 9-10): Demo Hardening
+**Goals**
+- Improve reliability and repeatable expo demo flow.
+
+**Deliverables**
+- Stable demo runbook
+- Latency/FPS/error logs
+- CI checks in GitHub Actions
+
+**Definition of Done**
+- [ ] 30-minute no-crash run
+- [ ] Demo works on live cam + 2 backup videos
+- [ ] One-command startup with Docker Compose
+
+**Tasks by Team**
+- Vision/Data: freeze expo model + test clip pack
+- Backend: retries/reconnect + pytest + CI
+- Frontend: readability polish + incident timeline
+
+**Integration checkpoint**
+- Full dress rehearsal with fixed script.
+
+**Risks + mitigations**
+- Camera failure -> fallback prerecorded clips.
+- Regression risk -> feature freeze, bug fixes only.
+
+---
+
+### Phase 6 (Weeks 11-12): Final Polish + Expo Packaging
+**Goals**
+- Final bug fixes, docs, and presentation rehearsals.
+
+**Deliverables**
+- Final architecture + metrics slides
+- Troubleshooting cheat sheet
+- Expo talk track with role handoffs
+
+**Definition of Done**
+- [ ] P1 bugs closed
+- [ ] Recovery from failure in under 5 minutes
+- [ ] Two timed end-to-end rehearsals completed
+
+**Tasks by Team**
+- Vision/Data: final validation report
+- Backend: config cleanup + log sanity
+- Frontend: final UX polish + demo mode
+
+**Integration checkpoint**
+- Final end-to-end rehearsal passed twice.
+
+**Risks + mitigations**
+- Last-minute scope creep -> strict freeze.
+- Presenter confusion -> scripted transitions and backups.
+
+## D) Scope: MVP vs Demo-Ready Prototype
+
+### Must have (expo)
+- Live camera/video ingest
+- YOLO detection
+- Rule-based risk alerts
+- Real-time dashboard via SSE
+- Incident lifecycle (open/ack/resolved)
+- Backend-only LLM summary on trigger
+- Docker local run + basic tests
+
+### Nice to have if time
+- Alert snapshot image
+- Per-camera filter
+- Confidence trend chart
+- Model v2 comparison panel
+
+### Not doing
+- Mobile app
+- Full multi-tenant auth
+- Kubernetes/production scaling
+- Continuous LLM on every frame
+
+## E) Shared Contract
+
+### Detection JSON
+```json
+{
+  "class": "gun",
+  "confidence": 0.91,
+  "bbox": { "x": 412, "y": 188, "w": 96, "h": 64 },
+  "timestamp": "2026-02-12T19:05:22Z",
+  "frame_id": 18342
+}
+```
+
+### Alert/Incident JSON
+```json
+{
+  "id": "inc_20260212_0007",
+  "severity": "high",
+  "status": "open",
+  "created_at": "2026-02-12T19:05:23Z",
+  "objects": [
+    {
+      "class": "gun",
+      "confidence": 0.91,
+      "bbox": { "x": 412, "y": 188, "w": 96, "h": 64 },
+      "timestamp": "2026-02-12T19:05:22Z",
+      "frame_id": 18342
+    }
+  ],
+  "summary": "Optional short context generated by backend LLM."
+}
+```
+
+### API Endpoints
+- `GET /health`
+- `GET /version`
+- `POST /api/camera/start`
+- `POST /api/camera/stop`
+- `GET /api/incidents`
+- `GET /api/incidents/{id}`
+- `PATCH /api/incidents/{id}/status`
+- `GET /api/stream/alerts` (SSE)
+
+## F) Simple Test Plan
+
+### Backend unit tests
+- Risk rule behavior (consecutive frames, cooldown)
+- Incident status transition validity
+- Schema validation tests
+- LLM trigger conditions + timeout fallback
+
+### Manual checklist (frontend + end-to-end)
+- [ ] Start system with one command
+- [ ] Live detections appear on dashboard
+- [ ] Incident appears under trigger rules
+- [ ] Ack/resolve actions update immediately
+- [ ] SSE reconnect works after backend restart
+- [ ] LLM summary appears only on trigger
+
+### Minimal CV validation (sanity goals)
+- Dangerous-class recall on curated clips: `>= 0.80`
+- Dangerous alert precision in demo setup: `>= 0.70`
+- Benign clips should not generate repeated high-severity spam
+
+## Required Decisions (Made)
+1. **Realtime transport**: **SSE** (simpler for one-way server -> dashboard alerts).  
+2. **LLM provider first**: **OpenAI** (simple Python SDK, fast start).  
+3. **Storage**: in-memory allowed in Phase 2 only; **PostgreSQL required from Phase 3 onward**.  
+4. **Sampling + LLM trigger rules**: capture `15 FPS`, infer at `5 FPS`; incident if dangerous class appears in `>=3` frames within `2s` and confidence `>=0.60`; LLM triggers on incident create/escalate with `30s` cooldown.
+
