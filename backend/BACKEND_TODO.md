@@ -11,7 +11,7 @@ Full task list in build order. Check off items as you complete them.
 - [x] Create FastAPI app skeleton (`main.py` with router wiring)
 - [x] Build `GET /health` endpoint
 - [x] Build `GET /version` endpoint
-- [ ] Define `BBox` and `Detection` Pydantic schemas (`schemas/detection.py`)
+- [x] Define `BBox` and `Detection` Pydantic schemas (`schemas/detection.py`)
 - [ ] Define `Incident` and `IncidentStatusUpdate` Pydantic schemas (`schemas/incident.py`)
 - [ ] Build `GET /api/incidents` endpoint (return hardcoded mock list)
 - [ ] Build `GET /api/incidents/{id}` endpoint (return single mock incident)
