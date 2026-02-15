@@ -23,7 +23,7 @@ class Incident_Report(BaseModel):
     date_posted : datetime
     status : Incident_Status
     risk_level : RiskLevel
-    #objects : List[detections] = None # none right now just for tesing
+    objects : List[detections] = None # none right now just for tesing
     summary : Optional[str] = None
 
 
@@ -31,7 +31,7 @@ class Incident_Report(BaseModel):
 
 class Create_Incident(BaseModel):
     risk_level : RiskLevel
-    #objects : List[detections] = None # none right now just for tesing
+    objects : List[detections] = None # none right now just for tesing
     summary : Optional[str] = None
 
 
