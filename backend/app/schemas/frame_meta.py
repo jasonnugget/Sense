@@ -7,3 +7,6 @@ class FrameMeta(BaseModel):
     content_type : str
     timestamp: datetime
     num_bytes: int   
+
+class CameraStartRequest(BaseModel):
+    source: str | int = 0

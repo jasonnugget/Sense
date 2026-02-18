@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Optional, List
 from enum import Enum 
-from app.schemas.detecion import ObjectDetection
+from app.schemas.detection import ObjectDetection, BBox
 
 
 

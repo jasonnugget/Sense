@@ -2,6 +2,17 @@
 
 Full task list in build order. Check off items as you complete them.
 
+## Current Build Mode
+
+For now, focus on:
+- endpoint creation
+- service/connectors wiring
+- core backend logic
+- mock or in-memory data flows
+
+Do not block progress on perfect/real data during this stage.
+Hard-data validation and realism checks are tracked in the testing section below.
+
 ---
 
 ## Phase 1: Foundation (Weeks 1-2) -- Work independently
@@ -12,11 +23,11 @@ Full task list in build order. Check off items as you complete them.
 - [x] Build `GET /health` endpoint
 - [x] Build `GET /version` endpoint
 - [x] Define `BBox` and `Detection` Pydantic schemas (`schemas/detection.py`)
-- [ ] Define `Incident` and `IncidentStatusUpdate` Pydantic schemas (`schemas/incident.py`)
-- [ ] Build `GET /api/incidents` endpoint (return hardcoded mock list)
-- [ ] Build `GET /api/incidents/{id}` endpoint (return single mock incident)
-- [ ] Build `PATCH /api/incidents/{id}/status` endpoint (accept status update)
-- [ ] Build `GET /api/stream/alerts` SSE endpoint with mock fake alerts
+- [x] Define `Incident` and `IncidentStatusUpdate` Pydantic schemas (`schemas/incident.py`)
+- [x] Build `GET /api/incidents` endpoint (return hardcoded mock list)
+- [x] Build `GET /api/incidents/{id}` endpoint (return single mock incident)
+- [x] Build `PATCH /api/incidents/{id}/status` endpoint (accept status update)
+- [x] Build `GET /api/stream/alerts` SSE endpoint (connection + publish flow; hard-data alerts in Testing section)
 - [ ] Build `POST /api/camera/start` and `POST /api/camera/stop` placeholders
 - [ ] Build standalone OpenCV script that reads webcam/video and prints frame info
 - [ ] Add placeholder `router = APIRouter()` to empty route files so app doesn't crash
@@ -24,6 +35,18 @@ Full task list in build order. Check off items as you complete them.
 - [ ] Verify everything runs with `uvicorn app.main:app --reload`
 
 **SYNC with Frontend**: Frontend connects to `GET /api/stream/alerts` and confirms mock alerts render in their dashboard.
+
+---
+
+## Testing & Hard Data Validation (Add after endpoint skeleton is stable)
+
+**Goal**: Validate real-looking payloads and behavior after core routes/connectors are in place.
+
+- [ ] Create fixed detection + incident fixture payloads (realistic values, consistent IDs/timestamps)
+- [ ] Add API contract checks using hard-data fixtures for incidents endpoints
+- [ ] Add SSE test feed using hard-data mock alerts (not random shape)
+- [ ] Verify frontend renders hard-data alerts exactly as expected
+- [ ] Run manual `curl` checks for all Phase 1 routes with fixture data
 
 ---
 

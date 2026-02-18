@@ -1,6 +1,10 @@
-from fastapi import FastAPI, UploadFile, HTTPException , APIRouter
+from fastapi import UploadFile, HTTPException , APIRouter
 from datetime import datetime, timezone
-from app.schemas.frame_meta import FrameMeta
+from app.schemas.frame_meta import FrameMeta, CameraStartRequest
+
+is_running = False
+camera_source = None
+started_at = None
 
 frame_store: dict[int, FrameMeta] = {}
 
@@ -28,3 +32,27 @@ def search_frames(frame_id : int):
     if frame_id not in frame_store:
         raise HTTPException(status_code = 404, detail = "Frame Not Found")
     return frame_store[frame_id]
+
+@router.post("/camera/start")
+def frame_start(payload: CameraStartRequest):
+    global is_running, camera_source, started_at
+    if is_running:
+        raise HTTPException(status_code = 409, detail = "Camera already running.") # raise means stop/break out of endpoint
+    is_running = True
+    camera_source = payload.source
+    started_at = datetime.now(timezone.utc)
+    return {
+        "status": "started",
+        "source": camera_source,
+        "started_at": started_at
+    }
+
+@router.post("/camera/stop")
+def frame_stop():
+    global is_running, camera_source, started_at
+    if not is_running:
+        raise HTTPException(status_code = 409, detail = "Camera is not running.")
+    is_running = False
+    camera_source = None
+    started_at = None
+    return {"status": "stopped"}
