@@ -1,0 +1,84 @@
+.cameraPage {
+  padding: 24px;
+}
+
+.cameraHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.backLink {
+  color: var(--link);
+  text-decoration: none;
+}
+
+.cameraTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.cameraFrame {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  height: 520px;
+}
+
+.cameraPlaceholder {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.cameraBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.timeline {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  align-items: center;
+  gap: 16px;
+}
+
+.timelineLine {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.event {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 600;
+  background: var(--surface);
+}
+
+.liveBtn {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: red;
+}

@@ -1,0 +1,17 @@
+.topActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pillBtn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.pillBtn:hover {
+  filter: brightness(1.05);
+}
