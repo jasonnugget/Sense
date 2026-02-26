@@ -1,1 +1,0 @@
-//router+ route configuration setting and camera detail pages
