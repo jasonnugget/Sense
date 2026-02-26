@@ -44,8 +44,20 @@ def extract_recent_evidence(buffers,camera_id): # get detections from current wi
     return class_data # return the classes and each class will have a list of frames 
 
 
+def check_persistence(class_data): # check if the same object appears over mutiple frames close in time
+    min_frames = 4 # threshold we can change 
+    passing_classes = [] # list of passing classes
+    for class_na in class_data: # checking each class nam in the class data dict we pass
+        unique_frames = [] # create a list to check if we have unique ids
+        for detection in class_data[class_na]: # checking each detection schema for their class name
+            if detection.frame_id not in unique_frames: # if the frame id isn't there we add it 
+                unique_frames.append(detection.frame_id) # if it is dont add it (no duplicates)
+        if len(unique_frames) >= min_frames: # if it's greater than or equal to our threshold we add to list
+            passing_classes.append(class_na)
+    return passing_classes # return list of passing classes 
+            
+        
 
-def check_persistence(): # check if the same object appears over mutiple frames close in time
 
 def check_confidence(): # check confidence levels they have to be above 0.67%
 
