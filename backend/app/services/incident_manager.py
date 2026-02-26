@@ -25,7 +25,7 @@ def create_a_inc(information : Create_Incident):
     date_posted = datetime.now(timezone.utc),
     status = Incident_Status.open,
     risk_level = information.risk_level,
-    #objects = information.objects,
+    objects = information.objects,
     summary = information.summary
     )
     # adds it to storage 
