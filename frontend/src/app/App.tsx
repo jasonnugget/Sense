@@ -1,9 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
 import TopBar from '../components/TopBar'
-import ActivityPanel from '../components/ActivityPanel'
-import Dashboard from '../pages/Dashboard'
+import ActivityPanel from '../components/activityPanel'
+import MainPage from '../pages/MainPage'
 import CameraPage from '../pages/CameraPage'
-import './App.css'
+import '../App.css'
 
 export default function App() {
   return (
@@ -16,7 +16,7 @@ export default function App() {
           element={
             <div className="mainLayout">
               <ActivityPanel />
-              <Dashboard />
+              <MainPage />
             </div>
           }
         />

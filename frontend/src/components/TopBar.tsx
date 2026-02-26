@@ -18,7 +18,7 @@ export default function TopBar() {
 
   return (
     <div className="topBar">
-      <div className="logo">🔥 Sense</div>
+      <div className="logo">👁️ Sense</div>
 
       <div className="topActions">
         <button className="pillBtn">Rec</button>
