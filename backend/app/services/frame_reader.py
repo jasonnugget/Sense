@@ -38,5 +38,3 @@ def frame_reader(source):
     finally:
         camera.release()
         cv2.destroyAllWindows()
-
-frame_reader(0)
