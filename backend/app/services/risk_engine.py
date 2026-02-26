@@ -1,6 +1,6 @@
 from app.schemas.detection import ObjectDetection
 from app.schemas.frame_meta import FrameMeta
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 # first run the frames data base
 
@@ -26,26 +26,22 @@ async def maintain_frame_data (frame_det : ObjectDetection, frame : FrameMeta):
     while len(buffers[c_id]) > 30:
         buffers[c_id].pop(0)
     # while list isn't empty and the oldest frames timestamp is less then baseline pop the old frames
-    while len(buffers[c_id]) > 0 & buffers[c_id][0].timestamp < baseline: # 
+    while len(buffers[c_id]) > 0 and buffers[c_id][0].timestamp < baseline: # 
         buffers[c_id].pop(0)
 # return the new list
     return buffers[c_id]
         
 
 def extract_recent_evidence(buffers,camera_id): # get detections from current window for one camera
-    camera_window = buffers[camera_id]
-    class_data: dict[str, list[ObjectDetection]] = {}
-    for frames in camera_window:
-        if camera_window[frames]:
-            for detections in camera_window[frames]:
-                if class_data[detections.class_name] in class_data:
-                    class_data[detections.class_name].append(list[camera_window[detections]])
-                else: 
-                class_data[detections.class_name, detections] = []
-                class_data[detections.class_name].append(list[camera_window[detections]])
+    camera_window = buffers[camera_id] #create camera window
+    class_data: dict[str, list[ObjectDetection]] = {} # create class_data dict that will group it by class
+    for frame_meta in camera_window: # check frame_meta in camera_window
+        for det in frame_meta.detections: # for each detection cehck wether class is in it 
+            if det.class_name not in class_data: # if it's not add it
+                class_data[det.class_name] = []
+            class_data[det.class_name].append(det) # append at the end
 
-        
-    return class_data
+    return class_data # return the classes and each class will have a list of frames 
 
 
 
