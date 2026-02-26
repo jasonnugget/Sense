@@ -42,7 +42,7 @@ def extract_recent_evidence(buffers,camera_id): # get detections from current wi
                     class_data[detections.class_name].append(list[camera_window[detections]])
                 else: 
                 class_data[detections.class_name, detections] = []
-                class_data[camera_window].append([detections.class_name, list[camera_window[detections]]])
+                class_data[detections.class_name].append(list[camera_window[detections]])
 
         
     return class_data
