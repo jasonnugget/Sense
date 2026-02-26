@@ -28,7 +28,7 @@ Hard-data validation and realism checks are tracked in the testing section below
 - [x] Build `GET /api/incidents/{id}` endpoint (return single mock incident)
 - [x] Build `PATCH /api/incidents/{id}/status` endpoint (accept status update)
 - [x] Build `GET /api/stream/alerts` SSE endpoint (connection + publish flow; hard-data alerts in Testing section)
-- [ ] Build `POST /api/camera/start` and `POST /api/camera/stop` placeholders
+- [x] Build `POST /api/camera/start` and `POST /api/camera/stop` placeholders
 - [ ] Build standalone OpenCV script that reads webcam/video and prints frame info
 - [ ] Add placeholder `router = APIRouter()` to empty route files so app doesn't crash
 - [ ] Remove unused `FastAPI` import from `health.py`
