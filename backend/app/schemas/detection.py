@@ -8,6 +8,7 @@ class BBox(BaseModel):
     h : int
 
 class ObjectDetection(BaseModel):
+    camera_id : str 
     class_name : str
     confidence : float
     bbox : BBox
