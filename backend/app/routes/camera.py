@@ -6,7 +6,7 @@ is_running = False
 camera_source = None
 started_at = None
 
-frame_store: dict[int, FrameMeta] = {}
+frame_store: dict[str, FrameMeta] = {}
 
 
 router = APIRouter()
@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post("/receive-frames", response_model = FrameMeta)
 # the two parameters will be we need an uploaded file and we need a frame_id for data purposes
 # the frontend should randomize it so they dont have to manuely input it every time but for now it works
-async def receive_frames(frame_file : UploadFile,frame_id : int):
+async def receive_frames(frame_file : UploadFile,frame_id : str):
     if frame_file.content_type not in ("image/jpeg", "image/png"): # checks if file type is images
         raise HTTPException(status_code = 415, detail = "Jpeg and PNG only file type supported") # if not gives error code
     imgbytes = await frame_file.read() # waits to read the image 
@@ -22,13 +22,14 @@ async def receive_frames(frame_file : UploadFile,frame_id : int):
     frame_id=frame_id,
     content_type=frame_file.content_type,
     num_bytes=len(imgbytes),
-    timestamp=datetime.now(timezone.utc)
+    timestamp=datetime.now(timezone.utc),
+    source="upload"
 )
     frame_store[frame_id] = meta_data
     return meta_data
 
 @router.get("/frames/{frame_id}", response_model = FrameMeta)
-def search_frames(frame_id : int):
+def search_frames(frame_id : str):
     if frame_id not in frame_store:
         raise HTTPException(status_code = 404, detail = "Frame Not Found")
     return frame_store[frame_id]
