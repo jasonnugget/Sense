@@ -1,4 +1,3 @@
-from typing import Any
 import cv2
 from app.schemas.frame_meta import FrameMeta
 import uuid
@@ -6,11 +5,11 @@ from datetime import datetime, timezone
 from collections import deque
 from app.services.detector import load_model, run_inference
 
-load_model("models/SenseV2Training.pt")
 
 def frame_reader(source):
     camera = cv2.VideoCapture(source)
     frame_meta_buffer = deque(maxlen=500)
+    load_model("models/SenseV2Training.pt")
 
     if not camera.isOpened():
         raise RuntimeError("Camera could not be opened")
