@@ -1,85 +1,20 @@
-/* Theme tokens */
-:root {
-  --bg: #242424;
-  --text: rgba(255, 255, 255, 0.87);
-  --surface: #1a1a1a;
-  --border: rgba(255, 255, 255, 0.2);
-  --link: #646cff;
-  --linkHover: #535bf2;
+/* index.css — base resets only; design system in App.css */
+html, body { height: 100%; margin: 0; }
+body { min-width: 320px; font-synthesis: none; text-rendering: optimizeLegibility; }
+#root { height: 100%; }
 
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: var(--text);
-  background-color: var(--bg);
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Light mode overrides */
 :root[data-theme='light'] {
-  --bg: #ffffff;
-  --text: #213547;
-  --surface: #f3f4f6;
-  --border: rgba(0, 0, 0, 0.15);
-  --link: #1d4ed8;
-  --linkHover: #1e40af;
+  --bg:            #f0f0f3;
+  --surface:       #ffffff;
+  --surface-raised:#f6f6f9;
+  --border:        rgba(0,0,0,0.07);
+  --border-bright: rgba(0,0,0,0.13);
+  --text-1:  #111114;
+  --text-2:  rgba(17,17,20,0.50);
+  --text-3:  rgba(17,17,20,0.28);
+  color-scheme: light;
 }
 
-a {
-  font-weight: 500;
-  color: var(--link);
-  text-decoration: inherit;
-}
-a:hover {
-  color: var(--linkHover);
-}
-
-html,
-body {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-}
-
-#root {
-  height: 100%;
-  width: 100%;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-/* Keep a decent default button, but use tokens */
-button {
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  transition: border-color 0.25s, filter 0.25s;
-}
-button:hover {
-  filter: brightness(1.05);
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }

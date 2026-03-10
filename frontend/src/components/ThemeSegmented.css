@@ -1,0 +1,44 @@
+.segmented {
+  --seg-gap: 4px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--seg-gap);
+  padding: 4px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  min-width: 220px;
+}
+
+.segmentIndicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  width: calc((100% - 8px - (var(--seg-gap) * (var(--seg-count) - 1))) / var(--seg-count));
+  transform: translateX(calc(var(--seg-index) * (100% + var(--seg-gap))));
+  border-radius: 12px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  transition: transform 160ms ease;
+  pointer-events: none;
+}
+
+.segment {
+  position: relative;
+  z-index: 1;
+  height: 34px;
+  border-radius: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.segment:hover {
+  color: var(--text-1);
+}
+
+.segment.active {
+  color: var(--accent);
+}

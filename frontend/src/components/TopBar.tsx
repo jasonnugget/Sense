@@ -1,31 +1,23 @@
-import { useEffect, useState } from 'react'
-import './TopBar.css'
+type Props = {
+  onOpenSettings: () => void
+  onAddCamera?: () => void
+}
 
-type Theme = 'dark' | 'light'
-
-export default function TopBar() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme') as Theme | null
-    return saved ?? 'dark'
-  })
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('theme', theme)
-  }, [theme])
-
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
-
+export default function TopBar({ onOpenSettings, onAddCamera }: Props) {
   return (
-    <div className="topBar">
-      <div className="logo">👁️ Sense</div>
+    <div className="topBar visionGlass">
+      <div className="topBarLeft">
+        <span className="logo">Sense</span>
+      </div>
 
       <div className="topActions">
-        <button className="pillBtn">Rec</button>
-        <button className="pillBtn">Film</button>
-
-        <button className="pillBtn" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+        {onAddCamera && (
+          <button className="topBarButton primary" onClick={onAddCamera}>
+            + Add Camera
+          </button>
+        )}
+        <button className="topBarButton" onClick={onOpenSettings}>
+          Settings
         </button>
       </div>
     </div>
