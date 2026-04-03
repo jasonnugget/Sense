@@ -19,11 +19,19 @@
 .settingsCard {
   position: relative;
   width: min(560px, calc(100vw - 24px));
+  max-height: 82vh;
   background: var(--surface);
   border: 1px solid var(--border-bright);
   border-radius: 28px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.55);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.settingsCard::before {
+  display: none !important;
 }
 
 .settingsHeader,
@@ -62,6 +70,8 @@
 
 .settingsBody {
   padding: 18px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .settingsFooter {
@@ -99,6 +109,53 @@
 .settingsBtn.primary:hover:not(:disabled) {
   background: #ffffff;
   border-color: #ffffff;
+}
+
+.settingsBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settingsBody input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.14s;
+}
+
+.settingsBody input:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+.settingsBody input::placeholder {
+  color: var(--text-3);
+}
+
+.settingsBody label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @media (max-width: 640px) {

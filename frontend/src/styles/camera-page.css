@@ -1,0 +1,28 @@
+.cameraPage { padding: 28px 32px; }
+.cameraHeader { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.backLink {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--text-3);
+  padding: 7px 14px; border-radius: var(--r-sm);
+  background: var(--surface); border: 1px solid var(--border); transition: all 0.13s;
+}
+.backLink:hover { color: var(--text-1); border-color: var(--border-bright); opacity: 1; }
+.cameraTitle { font-size: 20px; font-weight: 700; color: var(--text-1); letter-spacing: -0.025em; }
+.cameraFrame { border-radius: var(--r-xl); overflow: hidden; height: 500px; border: 1px solid var(--border); background: #0c0c10; }
+.cameraPlaceholder { height: 100%; display: grid; place-items: center; color: var(--text-3); font-size: 14px; }
+.cameraBottom { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; }
+.timeline { flex: 1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
+.timelineLine { height: 2px; border-radius: 99px; background: var(--border); }
+.event { border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--surface); white-space: nowrap; }
+.liveBtn { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: var(--r-md); font-size: 13px; font-weight: 700; color: var(--text-1); background: var(--surface); border: 1px solid var(--border); transition: all 0.14s; }
+.liveBtn:hover { border-color: var(--border-bright); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 8px rgba(255,82,82,0.5); animation: livePulse 1.6s ease-in-out infinite; }
+@keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

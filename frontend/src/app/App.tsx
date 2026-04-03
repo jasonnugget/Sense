@@ -83,6 +83,13 @@ function getRouteBucket(pathname: string): '/' | '/alerts' | '/cameras' | '/help
   return '/other'
 }
 
+const NAV_ITEMS = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/alerts', label: 'Alerts' },
+  { to: '/cameras', label: 'Cameras' },
+  { to: '/help', label: 'Help' },
+] as const
+
 export default function App() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -387,10 +394,16 @@ export default function App() {
             </span>
           </div>
           <nav className="topNav" aria-label="Primary">
-            <NavLink to="/" end className={({ isActive }) => `topNavLink${isActive ? ' active' : ''}`}>Home</NavLink>
-            <NavLink to="/alerts" className={({ isActive }) => `topNavLink${isActive ? ' active' : ''}`}>Alerts</NavLink>
-            <NavLink to="/cameras" className={({ isActive }) => `topNavLink${isActive ? ' active' : ''}`}>Cameras</NavLink>
-            <NavLink to="/help" className={({ isActive }) => `topNavLink${isActive ? ' active' : ''}`}>Help</NavLink>
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) => `topNavLink${isActive ? ' active' : ''}`}
+              >
+                {item.label}
+              </NavLink>
+            ))}
           </nav>
         </div>
 
@@ -450,32 +463,21 @@ export default function App() {
 
       {/* ══ SETTINGS MODAL ════════════════════════════════ */}
       <SettingsModal open={settingsOpen} onClose={closeSettings} onSave={saveSettings}>
-          <div style={{ display: 'grid', gap: 18 }}>
-          <div style={{ display: 'grid', gap: 16 }}>
-            <span style={{ fontSize: 14, fontWeight: 500 }}>Appearance</span>
+        <div className="appSettingsStack">
+          <div className="settingsSection">
+            <span className="settingsSectionTitle">Appearance</span>
             <ThemeSegmented value={draftTheme} onChange={setDraftTheme} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 16 }}>
-            <div style={{ display: 'grid', gap: 6, width: '100%' }}>
-              <span style={{ fontSize: 14, fontWeight: 500 }}>Colorblind mode</span>
-              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Adjusts threat/status colors for different color-vision needs.</span>
+          <div className="settingsRow">
+            <div className="settingsTextBlock">
+              <span className="settingsSectionTitle">Colorblind mode</span>
+              <span className="settingsDescription">Adjusts threat/status colors for different color-vision needs.</span>
             </div>
             <select
+              className="settingsSelect"
               value={draftColorblindMode}
               onChange={(e) => setDraftColorblindMode(e.target.value as typeof draftColorblindMode)}
               aria-label="Colorblind preset"
-              style={{
-                minWidth: 168,
-                height: 36,
-                borderRadius: 12,
-                border: '1px solid var(--border)',
-                background: 'var(--surface-raised)',
-                color: 'var(--text-1)',
-                padding: '0 12px',
-                fontSize: 13,
-                fontWeight: 600,
-                outline: 'none',
-              }}
             >
               <option value="off">Off</option>
               <option value="deuteranopia">Deuteranopia</option>

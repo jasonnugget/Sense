@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import CameraCard from '../components/CameraCard'
 import AddCameraModal from '../components/AddCameraModal'
 import SettingsModal from '../components/SettingsModal'
@@ -41,6 +41,15 @@ function IconShield() {
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
   )
+}
+
+type OverviewCard = {
+  label: string
+  value: string | number
+  subtext: ReactNode
+  icon: ReactNode
+  iconToneClass: string
+  valueToneClass?: string
 }
 
 export default function MainPage({
@@ -173,6 +182,45 @@ export default function MainPage({
     return { byGroup, ungrouped }
   }, [cameras, groups])
 
+  const overviewCards: OverviewCard[] = [
+    {
+      label: 'Total Cameras',
+      value: totalCameras,
+      subtext: (
+        <>
+          <span className="statusPip online" />
+          {onlineCameras} online
+          {offlineCameras > 0 && (
+            <> &middot; <span className="statusPip offline" />{offlineCameras} offline</>
+          )}
+        </>
+      ),
+      icon: <IconCamera />,
+      iconToneClass: 'overviewCardIcon-accent',
+    },
+    {
+      label: 'Alerts · 24h',
+      value: offlineCameras,
+      subtext: isAlert ? `${offlineCameras} camera${offlineCameras > 1 ? 's' : ''} offline` : 'No active alerts',
+      icon: <IconAlert />,
+      iconToneClass: 'overviewCardIcon-danger',
+      valueToneClass: isAlert ? 'overviewCardValue-danger' : undefined,
+    },
+    {
+      label: 'Status',
+      value: isAlert ? 'Alert' : 'Normal',
+      subtext: (
+        <>
+          <span className={`statusPip ${isAlert ? 'offline' : 'online'}`} />
+          {isAlert ? 'Needs attention' : 'All systems OK'}
+        </>
+      ),
+      icon: <IconShield />,
+      iconToneClass: isAlert ? 'overviewCardIcon-danger' : 'overviewCardIcon-accent',
+      valueToneClass: isAlert ? 'overviewCardValue-statusAlert' : 'overviewCardValue-statusNormal',
+    },
+  ]
+
   return (
     <>
       {showOverview && (
@@ -183,59 +231,20 @@ export default function MainPage({
           </div>
 
           <div className="overviewStrip">
-            <div className="overviewCard">
-              <div className="overviewCardTop">
-                <span className="overviewCardLabel">Total Cameras</span>
-                <div className="overviewCardIcon" style={{ background: 'var(--accent-dim)' }}>
-                  <IconCamera />
+            {overviewCards.map((card) => (
+              <div key={card.label} className="overviewCard">
+                <div className="overviewCardTop">
+                  <span className="overviewCardLabel">{card.label}</span>
+                  <div className={`overviewCardIcon ${card.iconToneClass}`}>
+                    {card.icon}
+                  </div>
                 </div>
-              </div>
-              <div className="overviewCardValue">{totalCameras}</div>
-              <div className="overviewCardSub">
-                <span className="statusPip online" />
-                {onlineCameras} online
-                {offlineCameras > 0 && (
-                  <> &middot; <span className="statusPip offline" />{offlineCameras} offline</>
-                )}
-              </div>
-            </div>
-
-            <div className="overviewCard">
-              <div className="overviewCardTop">
-                <span className="overviewCardLabel">Alerts · 24h</span>
-                <div className="overviewCardIcon" style={{ background: 'var(--danger-dim)' }}>
-                  <IconAlert />
+                <div className={`overviewCardValue${card.valueToneClass ? ` ${card.valueToneClass}` : ''}`}>
+                  {card.value}
                 </div>
+                <div className="overviewCardSub">{card.subtext}</div>
               </div>
-              <div
-                className="overviewCardValue"
-                style={{ color: isAlert ? 'var(--danger)' : undefined }}
-              >
-                {offlineCameras}
-              </div>
-              <div className="overviewCardSub">
-                {isAlert ? `${offlineCameras} camera${offlineCameras > 1 ? 's' : ''} offline` : 'No active alerts'}
-              </div>
-            </div>
-
-            <div className="overviewCard">
-              <div className="overviewCardTop">
-                <span className="overviewCardLabel">Status</span>
-                <div className="overviewCardIcon" style={{ background: isAlert ? 'var(--danger-dim)' : 'var(--accent-dim)' }}>
-                  <IconShield />
-                </div>
-              </div>
-              <div
-                className="overviewCardValue"
-                style={{ fontSize: 20, lineHeight: 1.4, fontWeight: 700, color: isAlert ? 'var(--danger)' : 'var(--accent)' }}
-              >
-                {isAlert ? 'Alert' : 'Normal'}
-              </div>
-              <div className="overviewCardSub">
-                <span className={`statusPip ${isAlert ? 'offline' : 'online'}`} />
-                {isAlert ? 'Needs attention' : 'All systems OK'}
-              </div>
-            </div>
+            ))}
           </div>
         </section>
       )}
@@ -437,11 +446,11 @@ export default function MainPage({
         }}
         title="Create Group"
       >
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div style={{ color: 'var(--text-2)', fontSize: 13 }}>
+        <div className="modalFormStack">
+          <div className="modalLead">
             Create a camera group folder to organize related feeds.
           </div>
-          <div style={{ display: 'grid', gap: 8 }}>
+          <div className="modalField">
             <label htmlFor="createGroupNameInput">Group name</label>
             <input
               id="createGroupNameInput"

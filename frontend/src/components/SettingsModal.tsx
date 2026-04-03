@@ -58,7 +58,6 @@ export default function SettingsModal({
             className="settingsBtn primary"
             onClick={onSave}
             disabled={!onSave}
-            style={!onSave ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
           >
             Save
           </button>

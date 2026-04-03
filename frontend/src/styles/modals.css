@@ -1,0 +1,208 @@
+.groupAssignOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.groupAssignBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6,7,10,0.74);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.groupAssignCard {
+  position: relative;
+  width: min(460px, calc(100vw - 24px));
+  max-height: min(70vh, 560px);
+  border-radius: 22px;
+  border: 1px solid var(--border-bright);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px;
+}
+
+.groupAssignHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.groupAssignTitle {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+
+.groupAssignSubtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.groupAssignClose {
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.groupAssignClose:hover {
+  color: var(--text-1);
+  border-color: var(--border-bright);
+}
+
+.groupAssignList {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 2px;
+}
+
+.groupAssignList::-webkit-scrollbar { width: 4px; }
+.groupAssignList::-webkit-scrollbar-track { background: transparent; }
+.groupAssignList::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+.groupAssignList:hover::-webkit-scrollbar-thumb,
+.groupAssignList:focus-within::-webkit-scrollbar-thumb { background: var(--border-bright); }
+
+.groupAssignItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.groupAssignItem.checked {
+  border-color: var(--border-bright);
+  color: var(--text-1);
+  background: color-mix(in srgb, var(--surface-raised) 95%, white 2%);
+}
+
+.groupAssignItem input {
+  accent-color: var(--text-1);
+}
+
+.groupAssignActions {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.groupAssignActionsRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.segmented {
+  --pad: 4px;
+  position: relative; display: grid;
+  grid-template-columns: repeat(var(--seg-count), 1fr);
+  align-items: center; padding: var(--pad);
+  border-radius: 16px;
+  background: var(--bg); border: 1px solid var(--border);
+}
+.segmentIndicator {
+  position: absolute; top: var(--pad); bottom: var(--pad); left: var(--pad);
+  width: calc((100% - (var(--pad) * 2)) / var(--seg-count));
+  border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border-bright);
+  transform: translateX(calc(var(--seg-index) * 100%));
+  transition: transform 200ms cubic-bezier(0.2,0.8,0.2,1);
+}
+.segment {
+  position: relative; z-index: 1; border: 0; background: transparent;
+  padding: 8px 14px; border-radius: 12px;
+  cursor: pointer; font-size: 13px; font-weight: 500; text-align: center;
+  color: var(--text-3); transition: color 0.14s;
+}
+.segment:hover { color: var(--text-2); }
+.segment.active { color: var(--text-1); font-weight: 600; }
+.segment:focus { outline: none; }
+.segment:focus-visible { outline: 2px solid rgba(61,217,164,0.4); outline-offset: 2px; }
+
+.appSettingsStack {
+  display: grid;
+  gap: 18px;
+}
+
+.settingsSection {
+  display: grid;
+  gap: 16px;
+}
+
+.settingsSectionTitle {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.settingsRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.settingsTextBlock {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.settingsDescription {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.settingsSelect {
+  min-width: 168px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-1);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+}
+
+.modalFormStack {
+  display: grid;
+  gap: 14px;
+}
+
+.modalLead {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.modalField {
+  display: grid;
+  gap: 8px;
+}

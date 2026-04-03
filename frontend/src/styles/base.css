@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+:root {
+  --panel-w:   300px;
+  --topbar-h:  64px;
+
+  --bg:            #121216;
+  --surface:       #141419;
+  --surface-raised:#1b1b21;
+  --border:        rgba(255,255,255,0.12);
+  --border-bright: rgba(255,255,255,0.24);
+
+  --text-1: #f2f2f4;
+  --text-2: rgba(242,242,244,0.68);
+  --text-3: rgba(242,242,244,0.42);
+
+  --accent:        #3dd9a4;
+  --accent-dim:    rgba(61,217,164,0.13);
+  --accent-border: rgba(61,217,164,0.28);
+  --danger:        #ff5252;
+  --danger-dim:    rgba(255,82,82,0.13);
+  --warning:       #ffb347;
+  --warning-dim:   rgba(255,179,71,0.13);
+  --camera-label-bg: #000000;
+  --camera-label-border: rgba(255,255,255,0.12);
+  --camera-label-text: #ffffff;
+  --camera-label-subtext: rgba(255,255,255,0.82);
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.5), 0 6px 24px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4);
+
+  --r-xs: 8px;
+  --r-sm: 14px;
+  --r-md: 20px;
+  --r-lg: 26px;
+  --r-xl: 32px;
+
+  --font: 'Figtree', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+
+  font-family: var(--font);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme='light'] {
+  --bg:            #f6f6f9;
+  --surface:       #ffffff;
+  --surface-raised:#ededf0;
+  --border:        rgba(0,0,0,0.12);
+  --border-bright: rgba(0,0,0,0.22);
+  --text-1: #111114;
+  --text-2: rgba(17,17,20,0.7);
+  --text-3: rgba(17,17,20,0.45);
+  --accent:        #0e8f67;
+  --accent-dim:    rgba(14,143,103,0.12);
+  --accent-border: rgba(14,143,103,0.22);
+  --danger:        #cc3d3d;
+  --danger-dim:    rgba(204,61,61,0.1);
+  --warning:       #b87823;
+  --warning-dim:   rgba(184,120,35,0.1);
+  --camera-label-bg: #000000;
+  --camera-label-border: rgba(255,255,255,0.16);
+  --camera-label-text: #ffffff;
+  --camera-label-subtext: rgba(255,255,255,0.84);
+  color-scheme: light;
+}
+
+:root[data-colorblind='deuteranopia'] {
+  --accent:        #3da5ff;
+  --accent-dim:    rgba(61,165,255,0.14);
+  --accent-border: rgba(61,165,255,0.30);
+  --danger:        #d86bff;
+  --danger-dim:    rgba(216,107,255,0.15);
+  --warning:       #f0b63f;
+  --warning-dim:   rgba(240,182,63,0.14);
+}
+
+:root[data-colorblind='protanopia'] {
+  --accent:        #2fb2ff;
+  --accent-dim:    rgba(47,178,255,0.14);
+  --accent-border: rgba(47,178,255,0.30);
+  --danger:        #b684ff;
+  --danger-dim:    rgba(182,132,255,0.15);
+  --warning:       #ffb24a;
+  --warning-dim:   rgba(255,178,74,0.14);
+}
+
+:root[data-colorblind='tritanopia'] {
+  --accent:        #2fd17f;
+  --accent-dim:    rgba(47,209,127,0.14);
+  --accent-border: rgba(47,209,127,0.28);
+  --danger:        #ff5e7a;
+  --danger-dim:    rgba(255,94,122,0.14);
+  --warning:       #b866ff;
+  --warning-dim:   rgba(184,102,255,0.14);
+}
+
+:root[data-theme='light'][data-colorblind='deuteranopia'] {
+  --accent:        #1667c8;
+  --accent-dim:    rgba(22,103,200,0.12);
+  --accent-border: rgba(22,103,200,0.24);
+  --danger:        #9d3fcb;
+  --danger-dim:    rgba(157,63,203,0.12);
+  --warning:       #a66700;
+  --warning-dim:   rgba(166,103,0,0.12);
+}
+
+:root[data-theme='light'][data-colorblind='protanopia'] {
+  --accent:        #0e74d9;
+  --accent-dim:    rgba(14,116,217,0.12);
+  --accent-border: rgba(14,116,217,0.24);
+  --danger:        #7f55d6;
+  --danger-dim:    rgba(127,85,214,0.12);
+  --warning:       #9d5f00;
+  --warning-dim:   rgba(157,95,0,0.12);
+}
+
+:root[data-theme='light'][data-colorblind='tritanopia'] {
+  --accent:        #147c49;
+  --accent-dim:    rgba(20,124,73,0.12);
+  --accent-border: rgba(20,124,73,0.22);
+  --danger:        #c03d66;
+  --danger-dim:    rgba(192,61,102,0.12);
+  --warning:       #7f43c2;
+  --warning-dim:   rgba(127,67,194,0.12);
+}
+
+:root[data-colorblind] .statusPip.online { box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 45%, transparent); }
+:root[data-colorblind] .statusPip.offline { box-shadow: 0 0 5px color-mix(in srgb, var(--danger) 42%, transparent); }
+:root[data-colorblind] .threatPill.high .threatPillDot,
+:root[data-colorblind] .eventPip.high,
+:root[data-colorblind] .offlineDot,
+:root[data-colorblind] .dot { box-shadow: 0 0 8px color-mix(in srgb, var(--danger) 45%, transparent); }
+:root[data-colorblind] .threatPill.medium .threatPillDot,
+:root[data-colorblind] .eventPip.medium { box-shadow: 0 0 8px color-mix(in srgb, var(--warning) 40%, transparent); }
+:root[data-colorblind] .threatPill.low .threatPillDot,
+:root[data-colorblind] .eventPip.low { box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 42%, transparent); }
+:root[data-colorblind] .eventBadge.high,
+:root[data-colorblind] .filterPill.high.active { border-color: color-mix(in srgb, var(--danger) 25%, transparent); }
+:root[data-colorblind] .eventBadge.medium,
+:root[data-colorblind] .filterPill.medium.active { border-color: color-mix(in srgb, var(--warning) 25%, transparent); }
+:root[data-colorblind] .eventBadge.low,
+:root[data-colorblind] .filterPill.low.active { border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+:root {
+  --text:        var(--text-1);
+  --surface:     var(--surface);
+  --border:      var(--border);
+  --link:        var(--accent);
+  --linkHover:   var(--accent);
+  --glass-fill:  var(--surface);
+  --glass-edge:  var(--border);
+  --card-border:   var(--border);
+  --card-border-h: var(--border-bright);
+  --font-mono:   var(--mono);
+  --text-3:      rgba(242,242,244,0.26);
+  --accent-glow: rgba(255,255,255,0.14);
+  --blur-modal:  blur(20px);
+  --r-xl:        26px;
+  --danger-dim:  rgba(255,82,82,0.13);
+  --warning-dim: rgba(255,179,71,0.13);
+  --accent-dim:  rgba(61,217,164,0.13);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body { background: var(--bg); color: var(--text-1); font-family: var(--font); transition: background 200ms ease, color 200ms ease; }
+a    { color: var(--accent); text-decoration: none; }
+button { font-family: var(--font); cursor: pointer; border: none; background: none; color: var(--text-1); }
