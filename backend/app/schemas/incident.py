@@ -22,6 +22,7 @@ class RiskLevel(str, Enum):
 class Incident_Report(BaseModel):
     id : int
     date_posted : datetime
+    last_seen : datetime
     status : Incident_Status
     risk_level : RiskLevel
     objects: Optional[List[ObjectDetection]] = None # none right now just for tesing

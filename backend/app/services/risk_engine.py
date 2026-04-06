@@ -1,13 +1,17 @@
 from app.schemas.detection import ObjectDetection
+from app.schemas.incident import Incident_Status
 from app.schemas.frame_meta import FrameMeta
+from app.services.incident_manager import incident_storage
 from datetime import timedelta, datetime
 
 # first run the frames data base
 
 # makes a storage of detections per camera
 buffers: dict[str, list[FrameMeta]] = {}
+cooldown_store: dict[str,str, datetime] = {}
 
 current_time = datetime.now()
+active_window = timedelta(seconds=60)
 
 async def maintain_frame_data (frame_det : ObjectDetection, frame : FrameMeta):
     c_id = frame_det.camera_id #get he camera_id
@@ -59,10 +63,35 @@ def check_persistence(class_data): # check if the same object appears over mutip
         
 
 
-def check_confidence(): # check confidence levels they have to be above 0.67%
+def check_confidence(passing_classes, class_data): # check confidence levels they have to be above 0.67%
+    confidence_threshold = 0.67 # confidence threshold (can change)
+    passed_confidence = [] # list that will hold passed objects 
+
+    for class_name in passing_classes: # for each class name in the list of passing classes
+        for detection in class_data[class_name]: # for each detection in a list of detections from that class
+            if detection.confidence >= confidence_threshold: # if a detection is greater then the threshold
+                passed_confidence.append(class_name) # add the class to the list 
+                break # break so we don't add duplicates
+            
+    return passed_confidence # return the passed classes
 
 
-def find_matching_active_incident(): # looking for matching incidents (camera_id + object_class + frames_time)
+def find_matching_active_incident(camera_id, class_name, incident_storage, current_time, active_window): # looking for matching incidents (camera_id + object_class + frames_time)
+    
+
+    active_statuses = {Incident_Status.open, Incident_Status.acknowledged} # check if incidents active or seen
+    for incident in incident_storage.values(): # for each incident in the incident storage
+        if incident.status not in active_statuses: # if incident.statues doesnt exist check next incident
+            continue
+        if not incident.objects: # if object list doesnt exist check next incident
+            continue 
+        for obj in incident.objects: # for eahc object check if cur camera == camera _ id and cur class = class
+            cur_camera = obj.camera_id
+            cur_class_name = obj.class_name
+            if cur_camera == camera_id and cur_class_name == class_name:
+                if current_time - incident.last_seen <= active_window:
+                    return incident.id # return incident.id 
+    return None # if none matching return   
 
 def apply_cooldown(): # apply cooldown stop duplicate alerts
 

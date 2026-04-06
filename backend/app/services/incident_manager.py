@@ -23,6 +23,7 @@ def create_a_inc(information : Create_Incident):
     new_inc = Incident_Report(
     id = next_id,
     date_posted = datetime.now(timezone.utc),
+    last_seen = datetime.now(timezone.utc)
     status = Incident_Status.open,
     risk_level = information.risk_level,
     objects = information.objects,
@@ -38,5 +39,6 @@ def update_incident(id : int, info : IncidentStatusUpdate):
     if id not in incident_storage: # checks if id isn't in storage
         raise HTTPException(status_code = 404, detail = "Incident Not found")
     incident_storage[id].status = info.status # if it is replace new status with old
+    incident_storage[id].last_seen = datetime.now(timezone.utc)
     return incident_storage[id] # return incident
 
