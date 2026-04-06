@@ -1,15 +1,15 @@
-from typing import Any
-
-
 import cv2
 from app.schemas.frame_meta import FrameMeta
 import uuid
 from datetime import datetime, timezone
 from collections import deque
+from app.services.detector import load_model, run_inference
+
 
 def frame_reader(source):
     camera = cv2.VideoCapture(source)
     frame_meta_buffer = deque(maxlen=500)
+    load_model("models/SenseV2Training.pt")
 
     if not camera.isOpened():
         raise RuntimeError("Camera could not be opened")
@@ -29,7 +29,8 @@ def frame_reader(source):
             source = source,
             num_bytes=frame.nbytes,
             content_type="image/bgr")
-            print(meta.model_dump)
+
+            run_inference(frame, meta)
 
             frame_meta_buffer.append(meta.model_dump())
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -38,3 +39,5 @@ def frame_reader(source):
     finally:
         camera.release()
         cv2.destroyAllWindows()
+
+
