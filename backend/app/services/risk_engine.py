@@ -8,10 +8,11 @@ from datetime import timedelta, datetime
 
 # makes a storage of detections per camera
 buffers: dict[str, list[FrameMeta]] = {}
-cooldown_store: dict[str,str, datetime] = {}
+cooldown_store: dict[tuple[str,str], datetime] = {}
 
 current_time = datetime.now()
 active_window = timedelta(seconds=60)
+cooldown_window = timedelta(seconds=10)
 
 async def maintain_frame_data (frame_det : ObjectDetection, frame : FrameMeta):
     c_id = frame_det.camera_id #get he camera_id
@@ -93,7 +94,19 @@ def find_matching_active_incident(camera_id, class_name, incident_storage, curre
                     return incident.id # return incident.id 
     return None # if none matching return   
 
-def apply_cooldown(): # apply cooldown stop duplicate alerts
+def apply_cooldown(camera_id,class_name): # apply cooldown stop duplicate alerts
+
+    if (camera_id,class_name) not in cooldown_store:
+        cooldown_store[(camera_id,class_name)] = current_time
+        return True
+
+    else:
+        last_time_seen = cooldown_store[(camera_id,class_name)]
+        if current_time - last_time_seen <= cooldown_window:
+            return False
+        else:
+            cooldown_store[(camera_id,class_name)] = current_time
+            return True
 
 def compute_risk_level(): # map class/condifdence to low or high
 
