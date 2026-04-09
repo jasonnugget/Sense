@@ -133,7 +133,6 @@ export default function App() {
     if (routeAnimTimeoutRef.current) window.clearTimeout(routeAnimTimeoutRef.current)
     if (routeAnimFrameRef.current) window.cancelAnimationFrame(routeAnimFrameRef.current)
 
-    // Force a class transition reset so animations retrigger cleanly on rapid nav.
     setIsRouteAnimating(false)
     routeAnimFrameRef.current = window.requestAnimationFrame(() => {
       setIsRouteAnimating(true)
@@ -180,8 +179,6 @@ export default function App() {
       if (homePanelTimerRef.current) window.clearTimeout(homePanelTimerRef.current)
     }
   }, [])
-
-  /* ── Camera state ──────────────────────────────────────── */
   const [groups, setGroups] = useState<CameraGroup[]>(() => {
     try {
       const raw = localStorage.getItem(GROUPS_KEY)
@@ -289,7 +286,7 @@ export default function App() {
     })
   }, [cameras, searchQuery])
 
-  /* ── Theme / settings ──────────────────────────────────── */
+ 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const s = localStorage.getItem('theme')
@@ -380,7 +377,6 @@ export default function App() {
       className={`appContainer routeAnim-${routeAnimDir} routeAnimProfile-${routeAnimProfile}${isRouteAnimating ? ' routeAnimating' : ''}`}
     >
 
-      {/* ══ TOP BAR — full width ══════════════════════════ */}
       <header className="topBar">
         <div className="topBarLeft">
           <div className="topBarLogo">
@@ -422,17 +418,12 @@ export default function App() {
         </div>
       </header>
 
-      {/* ══ BODY — left panel + right content ════════════ */}
       <div className="appBody">
-
-        {/* Left: activity panel */}
         <div className={`activityPanelSlot${homePanelSlotExpanded ? ' visible' : ''}`}>
           <div className={`activityPanelSlotInner${homePanelVisible ? ' visible' : ''}`} aria-hidden={!homePanelVisible}>
             <ActivityPanel events={alertEvents} onEventClick={(event) => setHomeModalAlertId(event.id)} />
           </div>
         </div>
-
-        {/* Right: scrollable content area */}
         <div className={`contentArea${isHomeRoute ? ' homeContentArea' : ''}`}>
           <div className="routeSurface">
             <Routes>
@@ -461,7 +452,6 @@ export default function App() {
 
       </div>
 
-      {/* ══ SETTINGS MODAL ════════════════════════════════ */}
       <SettingsModal open={settingsOpen} onClose={closeSettings} onSave={saveSettings}>
         <div className="appSettingsStack">
           <div className="settingsSection">
