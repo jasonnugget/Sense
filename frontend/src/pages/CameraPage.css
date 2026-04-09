@@ -1,41 +1,61 @@
 .cameraPage {
-  padding: 24px;
+  flex: 1;
+  min-height: 0;
+  padding: 20px 24px 28px;
+  display: grid;
+  gap: 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .cameraPageZoomIn {
-  animation: cameraPageZoomIn 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: cameraPageZoomIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .cameraHeader {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
 }
 
 .backLink {
-  color: var(--link);
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
   text-decoration: none;
+  transition: border-color 0.13s ease, color 0.13s ease, background 0.13s ease;
+}
+
+.backLink:hover {
+  color: var(--text-1);
+  border-color: var(--border-bright);
 }
 
 .cameraTitle {
   margin: 0;
-  font-size: 20px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .cameraPageBadge {
-  height: 26px;
+  min-height: 28px;
   padding: 0 10px;
-  border-radius: 999px;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  background: var(--surface-raised);
   color: var(--text-2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .cameraPageBadge.clip {
@@ -43,154 +63,262 @@
   color: var(--accent);
 }
 
-.cameraFrame {
+.cameraControlBar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 98%, white 2%), var(--surface));
+}
+
+.cameraControlCopy {
+  display: grid;
+  gap: 6px;
+  max-width: 700px;
+}
+
+.cameraControlEyebrow {
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cameraControlText {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cameraControlActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cameraFrame {
+  min-height: 520px;
+  border: 1px solid var(--border);
+  background: #07080b;
   overflow: hidden;
-  height: 520px;
-  background: var(--surface);
-  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .cameraFrame.clipFocus {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border-bright));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent),
-    0 14px 28px rgba(0,0,0,0.12);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border-bright));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.cameraLiveStage {
+  height: 100%;
+  min-height: 520px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0)),
+    radial-gradient(circle at top left, rgba(255,255,255,0.08), transparent 30%),
+    #050608;
+}
+
+.cameraLiveVideo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: #000;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.cameraLiveVideo.is-visible {
+  opacity: 1;
 }
 
 .cameraPlaceholder {
-  height: 100%;
+  min-height: 520px;
   display: grid;
   place-items: center;
-  color: var(--text);
-  opacity: 0.85;
+  padding: 24px;
 }
 
-.cameraBottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 18px;
-}
-
-.timeline {
-  flex: 1;
+.cameraPlaceholderCard {
+  width: min(520px, 100%);
   display: grid;
-  grid-template-columns: 280px 1fr 280px;
-  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(8, 10, 14, 0.84);
+  color: var(--text-2);
+}
+
+.cameraPlaceholderCard strong {
+  color: var(--text-1);
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.cameraPlaceholderLabel {
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cameraConnectGrid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.95fr;
   gap: 16px;
 }
 
-.timelineLine {
-  position: relative;
-  height: 4px;
-  border-radius: 999px;
-  background:
-    linear-gradient(90deg, rgba(255,255,255,0.14), rgba(255,255,255,0.22), rgba(255,255,255,0.14));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.10),
-    0 0 10px rgba(255,255,255,0.05);
-}
-
-.timelineLine.hasClipMarker {
-  background:
-    linear-gradient(90deg, var(--border), color-mix(in srgb, var(--border) 65%, var(--accent) 35%), var(--border));
-}
-
-.clipMarker {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  border: 2px solid rgba(255,255,255,0.85);
-  background: var(--accent);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent),
-    0 0 14px color-mix(in srgb, var(--accent) 42%, transparent);
-}
-
-.clipMarker::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: inherit;
-  background: rgba(255,255,255,0.9);
-}
-
-.clipMarker.high {
-  background: var(--danger);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--danger) 18%, transparent),
-    0 0 14px color-mix(in srgb, var(--danger) 40%, transparent);
-}
-
-.clipMarker.medium {
-  background: var(--warning);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--warning) 18%, transparent),
-    0 0 14px color-mix(in srgb, var(--warning) 38%, transparent);
-}
-
-.clipMarker.low {
-  background: var(--accent);
-}
-
-.event {
+.cameraConnectPanel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-weight: 600;
-  background:
-    radial-gradient(120% 120% at 0% 0%, rgba(255,255,255,0.04), transparent 55%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 95%, white 3%), color-mix(in srgb, var(--surface) 96%, white 2%));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.04),
-    0 8px 16px rgba(0,0,0,0.10);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 98%, white 2%), var(--surface));
 }
 
-.liveBtn {
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
-  color: var(--text);
-  padding: 14px 18px;
-  border-radius: 12px;
+.cameraConnectPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cameraConnectTitle {
+  color: var(--text-1);
+  font-size: 16px;
   font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cameraConnectSub {
+  margin-top: 4px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.cameraStatusBadge {
+  min-height: 28px;
+  padding: 0 10px;
   display: inline-flex;
   align-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cameraStatus-live {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+}
+
+.cameraStatus-error {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 24%, var(--border));
+}
+
+.cameraField {
+  display: grid;
+  gap: 8px;
+}
+
+.cameraField span {
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cameraField select {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-1);
+  font: inherit;
+  outline: none;
+}
+
+.cameraField select:focus {
+  border-color: var(--accent-border);
+}
+
+.cameraInlineActions {
+  display: flex;
   gap: 10px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  flex-wrap: wrap;
 }
 
-.dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: var(--danger);
-  box-shadow: 0 0 0 4px rgba(255,82,82,0.14), 0 0 14px rgba(255,82,82,0.28);
+.cameraError {
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, var(--border));
+  background: color-mix(in srgb, var(--danger-dim) 70%, transparent);
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
-:root[data-theme='light'] .timelineLine {
-  background:
-    linear-gradient(90deg, rgba(0,0,0,0.10), rgba(0,0,0,0.18), rgba(0,0,0,0.10));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.55),
-    0 0 8px rgba(0,0,0,0.03);
+.cameraChecklist {
+  display: grid;
+  gap: 10px;
+}
+
+.cameraChecklistItem {
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 95%, white 2%);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cameraChecklistItem.threat-high {
+  border-color: color-mix(in srgb, var(--danger) 22%, var(--border));
+}
+
+.cameraChecklistItem.threat-medium {
+  border-color: color-mix(in srgb, var(--warning) 22%, var(--border));
+}
+
+.cameraChecklistItem.threat-low {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
 }
 
 @keyframes cameraPageZoomIn {
   from {
     opacity: 0;
-    transform: scale(0.992) translateY(4px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .cameraControlBar,
+  .cameraConnectGrid {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .cameraControlBar {
+    align-items: start;
+  }
+
+  .cameraFrame,
+  .cameraLiveStage,
+  .cameraPlaceholder {
+    min-height: 360px;
   }
 }
 

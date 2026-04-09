@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './CameraCard.css'
 
@@ -9,7 +9,7 @@ type Props = {
   preview?: string
   pinned?: boolean
   onTogglePin?: (id: string) => void
-  onEdit?: (id: string) => void      // ✅ NEW
+  onEdit?: (id: string) => void
   onAssignGroups?: (id: string) => void
   onRemove?: (id: string) => void
 }
@@ -28,6 +28,9 @@ export default function CameraCard({
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const dropdownRef = useRef<HTMLDivElement | null>(null)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const [menuDirection, setMenuDirection] = useState<'up' | 'down'>('up')
 
   const toggleMenu: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     e.stopPropagation()
@@ -64,6 +67,43 @@ export default function CameraCard({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [menuOpen])
 
+  useLayoutEffect(() => {
+    if (!menuOpen) return
+
+    const updateMenuDirection = () => {
+      const button = buttonRef.current
+      const dropdown = dropdownRef.current
+      if (!button || !dropdown) return
+
+      const buttonRect = button.getBoundingClientRect()
+      const dropdownRect = dropdown.getBoundingClientRect()
+      const gap = 8
+      const viewportPad = 12
+      const scrollBounds =
+        button.closest('.cameraGroupsScroll, .contentPanelCameras')?.getBoundingClientRect() ?? {
+          top: viewportPad,
+          bottom: window.innerHeight - viewportPad,
+        }
+      const roomAbove = buttonRect.top - Math.max(scrollBounds.top, viewportPad)
+      const roomBelow = Math.min(scrollBounds.bottom, window.innerHeight - viewportPad) - buttonRect.bottom
+      const needed = dropdownRect.height + gap
+
+      if (roomAbove < needed && roomBelow > roomAbove) {
+        setMenuDirection('down')
+        return
+      }
+      setMenuDirection('up')
+    }
+
+    updateMenuDirection()
+    window.addEventListener('resize', updateMenuDirection)
+    window.addEventListener('scroll', updateMenuDirection, true)
+    return () => {
+      window.removeEventListener('resize', updateMenuDirection)
+      window.removeEventListener('scroll', updateMenuDirection, true)
+    }
+  }, [menuOpen])
+
   return (
     <div className="cameraCard" role="button" tabIndex={0} onClick={() => navigate(`/camera/${id}`)}>
       <div className="cameraShell">
@@ -94,6 +134,7 @@ export default function CameraCard({
         <button
           type="button"
           className="menuButton"
+          ref={buttonRef}
           aria-label="Camera menu"
           aria-haspopup="menu"
           aria-expanded={menuOpen}
@@ -103,7 +144,11 @@ export default function CameraCard({
         </button>
 
         {menuOpen && (
-          <div className="menuDropdown" role="menu">
+          <div
+            className={`menuDropdown menuDropdown-${menuDirection}`}
+            ref={dropdownRef}
+            role="menu"
+          >
             <button type="button" className="menuItem" role="menuitem" onClick={run(onTogglePin)}>
               {pinned ? 'Unpin' : 'Pin to top'}
             </button>
@@ -112,7 +157,7 @@ export default function CameraCard({
               type="button"
               className="menuItem"
               role="menuitem"
-              onClick={run(onEdit)}     // ✅ Edit opens modal
+              onClick={run(onEdit)}
               disabled={!onEdit}
             >
               Edit

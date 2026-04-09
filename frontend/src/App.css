@@ -5,3 +5,8 @@
 @import './styles/theme-overrides.css';
 @import './styles/modals.css';
 @import './styles/camera-page.css';
+
+.appContainer,
+.appContainer * {
+  border-radius: 0 !important;
+}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
 :root {
   --panel-w:   300px;
   --topbar-h:  64px;
@@ -29,14 +29,14 @@
   --shadow-md: 0 2px 8px rgba(0,0,0,0.5), 0 6px 24px rgba(0,0,0,0.3);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4);
 
-  --r-xs: 8px;
-  --r-sm: 14px;
-  --r-md: 20px;
-  --r-lg: 26px;
-  --r-xl: 32px;
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 10px;
 
-  --font: 'Figtree', system-ui, sans-serif;
-  --mono: 'DM Mono', monospace;
+  --font: 'Manrope', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
 
   font-family: var(--font);
   color-scheme: dark;
@@ -158,7 +158,7 @@
   --text-3:      rgba(242,242,244,0.26);
   --accent-glow: rgba(255,255,255,0.14);
   --blur-modal:  blur(20px);
-  --r-xl:        26px;
+  --r-xl:        10px;
   --danger-dim:  rgba(255,82,82,0.13);
   --warning-dim: rgba(255,179,71,0.13);
   --accent-dim:  rgba(61,217,164,0.13);
