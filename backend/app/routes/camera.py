@@ -1,12 +1,16 @@
 from fastapi import UploadFile, HTTPException , APIRouter
 from datetime import datetime, timezone
 from app.schemas.frame_meta import FrameMeta, CameraStartRequest
+from app.services.frame_reader import frame_reader, stop_flag
+import threading
 
 is_running = False
 camera_source = None
 started_at = None
+# Holds the background thread running frame_reader so we can check if it's alive
+camera_thread = None
 
-frame_store: dict[int, FrameMeta] = {}
+frame_store: dict[str, FrameMeta] = {}
 
 
 router = APIRouter()
@@ -14,7 +18,7 @@ router = APIRouter()
 @router.post("/receive-frames", response_model = FrameMeta)
 # the two parameters will be we need an uploaded file and we need a frame_id for data purposes
 # the frontend should randomize it so they dont have to manuely input it every time but for now it works
-async def receive_frames(frame_file : UploadFile,frame_id : int):
+async def receive_frames(frame_file : UploadFile,frame_id : str):
     if frame_file.content_type not in ("image/jpeg", "image/png"): # checks if file type is images
         raise HTTPException(status_code = 415, detail = "Jpeg and PNG only file type supported") # if not gives error code
     imgbytes = await frame_file.read() # waits to read the image 
@@ -22,22 +26,37 @@ async def receive_frames(frame_file : UploadFile,frame_id : int):
     frame_id=frame_id,
     content_type=frame_file.content_type,
     num_bytes=len(imgbytes),
-    timestamp=datetime.now(timezone.utc)
+    timestamp=datetime.now(timezone.utc),
+    source="upload"
 )
     frame_store[frame_id] = meta_data
     return meta_data
 
 @router.get("/frames/{frame_id}", response_model = FrameMeta)
-def search_frames(frame_id : int):
+def search_frames(frame_id : str):
     if frame_id not in frame_store:
         raise HTTPException(status_code = 404, detail = "Frame Not Found")
     return frame_store[frame_id]
 
 @router.post("/camera/start")
 def frame_start(payload: CameraStartRequest):
-    global is_running, camera_source, started_at
+    global is_running, camera_source, started_at, camera_thread
     if is_running:
-        raise HTTPException(status_code = 409, detail = "Camera already running.") # raise means stop/break out of endpoint
+        raise HTTPException(status_code = 409, detail = "Camera already running.")
+
+    # Clear the stop flag so the frame reader loop is allowed to run
+    stop_flag.clear()
+
+    # Spawn frame_reader in a background thread so FastAPI doesn't block
+    # daemon=True means the thread will die when the main server process exits
+    # source=0 is the webcam, or pass a video file path like "demo.mp4"
+    camera_thread = threading.Thread(
+        target=frame_reader,
+        args=(payload.source,),
+        daemon=True
+    )
+    camera_thread.start()
+
     is_running = True
     camera_source = payload.source
     started_at = datetime.now(timezone.utc)
@@ -49,9 +68,19 @@ def frame_start(payload: CameraStartRequest):
 
 @router.post("/camera/stop")
 def frame_stop():
-    global is_running, camera_source, started_at
+    global is_running, camera_source, started_at, camera_thread
     if not is_running:
         raise HTTPException(status_code = 409, detail = "Camera is not running.")
+
+    # Signal the frame reader loop to stop by setting the flag
+    # The while loop in frame_reader checks this every iteration
+    stop_flag.set()
+
+    # Wait up to 5 seconds for the thread to finish cleaning up (releasing camera, etc.)
+    if camera_thread is not None:
+        camera_thread.join(timeout=5)
+        camera_thread = None
+
     is_running = False
     camera_source = None
     started_at = None

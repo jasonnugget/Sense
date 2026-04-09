@@ -1,81 +1,62 @@
 from app.schemas.detection import ObjectDetection
-from app.schemas.frame_meta import FrameMeta
-from datetime import timedelta, datetime
+from app.schemas.incident import Create_Incident, RiskLevel
+from datetime import datetime, timedelta, timezone
 
-# first run the frames data base
+dangerous_objects = {"knife", "gun"}
+confidence_threshold = .60
+time_window = timedelta(seconds=2)
+min_frames = 3
+cooldown = timedelta(seconds=30)
 
-# makes a storage of detections per camera
-buffers: dict[str, list[FrameMeta]] = {}
+candidates = {}
 
-current_time = datetime.now()
+def compute_risk_level(class_name: str, confidence: float) -> RiskLevel:
+    if class_name == "gun":
+        return RiskLevel.high
+    if confidence >= 0.85:
+        return RiskLevel.high
+    if confidence >= 0.70:
+        return RiskLevel.medium
+    return RiskLevel.low
 
-async def maintain_frame_data (frame_det : ObjectDetection, frame : FrameMeta):
-    c_id = frame_det.camera_id #get he camera_id
-    threshold = timedelta(seconds=3) # bernard said i have to do this idk why tbh
-    if c_id in buffers: # if a list already exists just append newst frame
-        buffers[c_id].append(frame)
-    else:  # else create list and add frame
-        buffers[c_id] = []
-        buffers[c_id].append(frame)
+def process_detection(detection: ObjectDetection):
+    if detection.class_name not in dangerous_objects:
+        return None
+    if detection.confidence < confidence_threshold:
+        return None
+    key = (detection.camera_id, detection.class_name)
+    if key not in candidates:
+        candidates[key] = {
+            "frame_ids": [],
+            "promoted": False,
+            "last_incident_time": None
+        }
+    candidate = candidates[key]
 
-# basline equation to delete frames olderthen the newest one 
-# to not back up storage
-    cur = frame.timestamp
-    baseline = cur - threshold
-    # if we hold more then 30 frames delete untill we below limit
-    while len(buffers[c_id]) > 30:
-        buffers[c_id].pop(0)
-    # while list isn't empty and the oldest frames timestamp is less then baseline pop the old frames
-    while len(buffers[c_id]) > 0 and buffers[c_id][0].timestamp < baseline: # 
-        buffers[c_id].pop(0)
-# return the new list
-    return buffers[c_id]
-        
+    existing_ids = [fid for fid, _ in candidate["frame_ids"]]
+    if detection.frame_id not in existing_ids:
+        candidate["frame_ids"].append((detection.frame_id, detection.timestamp))
 
-def extract_recent_evidence(buffers,camera_id): # get detections from current window for one camera
-    camera_window = buffers[camera_id] #create camera window
-    class_data: dict[str, list[ObjectDetection]] = {} # create class_data dict that will group it by class
-    for frame_meta in camera_window: # check frame_meta in camera_window
-        for det in frame_meta.detections: # for each detection cehck wether class is in it 
-            if det.class_name not in class_data: # if it's not add it
-                class_data[det.class_name] = []
-            class_data[det.class_name].append(det) # append at the end
+    now = datetime.now(timezone.utc)
+    cutoff = now - time_window
+    candidate["frame_ids"] = [
+        (fid, ts) for fid, ts in candidate["frame_ids"] if ts >= cutoff
+    ]
 
-    return class_data # return the classes and each class will have a list of frames 
-
-
-def check_persistence(class_data): # check if the same object appears over mutiple frames close in time
-    min_frames = 4 # threshold we can change 
-    passing_classes = [] # list of passing classes
-    for class_na in class_data: # checking each class nam in the class data dict we pass
-        unique_frames = [] # create a list to check if we have unique ids
-        for detection in class_data[class_na]: # checking each detection schema for their class name
-            if detection.frame_id not in unique_frames: # if the frame id isn't there we add it 
-                unique_frames.append(detection.frame_id) # if it is dont add it (no duplicates)
-        if len(unique_frames) >= min_frames: # if it's greater than or equal to our threshold we add to list
-            passing_classes.append(class_na)
-    return passing_classes # return list of passing classes 
-            
-        
-
-
-def check_confidence(): # check confidence levels they have to be above 0.67%
-
-
-def find_matching_active_incident(): # looking for matching incidents (camera_id + object_class + frames_time)
-
-def apply_cooldown(): # apply cooldown stop duplicate alerts
-
-def compute_risk_level(): # map class/condifdence to low or high
-
-
-
-
-def incident_condtions(frame, timestamp, buffers, current_time, frame_det):
-    cur_frame = frame
-    cur_detec = frame_det
-    window = maintain_frame_data(cur_detec,cur_frame)
+    if len(candidate["frame_ids"]) >= min_frames and not candidate["promoted"]:
+        if candidate["last_incident_time"] is None or (now - candidate["last_incident_time"]) >= cooldown:
+            candidate["promoted"] = True
+            candidate["last_incident_time"] = now
+            return Create_Incident(
+                risk_level = compute_risk_level(detection.class_name, detection.confidence),
+                objects=[detection],
+                summary=f"{detection.class_name} detected on camera {detection.camera_id}"
+            )
     
-    for i in range(len(window)):
-        if window[cur_detec.camera_id][i] && window[cur_detec.camera_id][i++]
+    return None
 
+def resolve_incident(camera_id: str, class_name: str):
+    key = (camera_id, class_name)
+    if key in candidates:
+        candidates[key]["promoted"] = False
+        candidates[key]["last_incident_time"] = datetime.now(timezone.utc)
