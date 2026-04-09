@@ -1,10 +1,14 @@
 from fastapi import UploadFile, HTTPException , APIRouter
 from datetime import datetime, timezone
 from app.schemas.frame_meta import FrameMeta, CameraStartRequest
+from app.services.frame_reader import frame_reader, stop_flag
+import threading
 
 is_running = False
 camera_source = None
 started_at = None
+# Holds the background thread running frame_reader so we can check if it's alive
+camera_thread = None
 
 frame_store: dict[str, FrameMeta] = {}
 
@@ -36,9 +40,23 @@ def search_frames(frame_id : str):
 
 @router.post("/camera/start")
 def frame_start(payload: CameraStartRequest):
-    global is_running, camera_source, started_at
+    global is_running, camera_source, started_at, camera_thread
     if is_running:
-        raise HTTPException(status_code = 409, detail = "Camera already running.") # raise means stop/break out of endpoint
+        raise HTTPException(status_code = 409, detail = "Camera already running.")
+
+    # Clear the stop flag so the frame reader loop is allowed to run
+    stop_flag.clear()
+
+    # Spawn frame_reader in a background thread so FastAPI doesn't block
+    # daemon=True means the thread will die when the main server process exits
+    # source=0 is the webcam, or pass a video file path like "demo.mp4"
+    camera_thread = threading.Thread(
+        target=frame_reader,
+        args=(payload.source,),
+        daemon=True
+    )
+    camera_thread.start()
+
     is_running = True
     camera_source = payload.source
     started_at = datetime.now(timezone.utc)
@@ -50,9 +68,19 @@ def frame_start(payload: CameraStartRequest):
 
 @router.post("/camera/stop")
 def frame_stop():
-    global is_running, camera_source, started_at
+    global is_running, camera_source, started_at, camera_thread
     if not is_running:
         raise HTTPException(status_code = 409, detail = "Camera is not running.")
+
+    # Signal the frame reader loop to stop by setting the flag
+    # The while loop in frame_reader checks this every iteration
+    stop_flag.set()
+
+    # Wait up to 5 seconds for the thread to finish cleaning up (releasing camera, etc.)
+    if camera_thread is not None:
+        camera_thread.join(timeout=5)
+        camera_thread = None
+
     is_running = False
     camera_source = None
     started_at = None
