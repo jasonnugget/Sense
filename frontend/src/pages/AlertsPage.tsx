@@ -1,204 +1,144 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import type { AlertReviewDecision, Camera } from '../app/App'
-import AlertDetailsModal from '../components/AlertDetailsModal'
-import type { AlertEvent } from '../data/alerts'
-import { relTime } from '../data/alerts'
-
-type Props = {
-  cameras: Camera[]
-  alerts: AlertEvent[]
-  reviewDecisions: Record<string, AlertReviewDecision>
-  searchQuery?: string
-  onReviewAlert: (id: string, decision: AlertReviewDecision) => void
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AlertDetailPanel from '../components/AlertDetailPanel';
+import { relTime } from '../data/alerts';
+import './AlertsPage.css';
+const SEVERITY_LABEL = { all: 'All', high: 'High', medium: 'Medium', low: 'Low' };
+function statusClass(status) {
+    if (status.toLowerCase() === 'needs review')
+        return 'needs-review';
+    if (status.toLowerCase() === 'escalated')
+        return 'escalated';
+    return '';
 }
+function IconShield() {
+    return (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>);
+}
+export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, reviewDecisions, searchQuery = '', onReviewAlert }) {
+    const navigate = useNavigate();
+    const [selectedAlertId, setSelectedAlertId] = useState(null);
+    const [severityFilter, setSeverityFilter] = useState('all');
+    const [hideReviewed, setHideReviewed] = useState(false);
+    const alerts = useMemo(() => {
+        return allAlerts
+            .filter((alert) => {
+            const q = searchQuery.trim().toLowerCase();
+            if (!q)
+                return true;
+            return `${alert.label} ${alert.camera} ${alert.status} ${alert.summary}`.toLowerCase().includes(q);
+        })
+            .filter((alert) => severityFilter === 'all' || alert.level === severityFilter)
+            .filter((alert) => {
+            if (!hideReviewed)
+                return true;
+            const isReviewed = alert.status === 'Reviewed' || !!reviewDecisions[alert.id];
+            return !isReviewed;
+        });
+    }, [allAlerts, searchQuery, severityFilter, hideReviewed, reviewDecisions]);
+    useEffect(() => {
+        if (!alerts.length) {
+            setSelectedAlertId(null);
+            return;
+        }
+        setSelectedAlertId((prev) => (prev && alerts.some((a) => a.id === prev) ? prev : alerts[0].id));
+    }, [alerts]);
+    const counts = useMemo(() => ({
+        all: allAlerts.filter((a) => {
+            const q = searchQuery.trim().toLowerCase();
+            return !q || `${a.label} ${a.camera} ${a.status} ${a.summary}`.toLowerCase().includes(q);
+        }).length,
+        high: allAlerts.filter((a) => a.level === 'high').length,
+        medium: allAlerts.filter((a) => a.level === 'medium').length,
+        low: allAlerts.filter((a) => a.level === 'low').length,
+    }), [allAlerts, searchQuery]);
+    const reviewedCount = useMemo(() => allAlerts.filter((a) => a.status === 'Reviewed' || !!reviewDecisions[a.id]).length, [allAlerts, reviewDecisions]);
+    const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null;
+    const viewCamera = (alert) => {
+        navigate(`/camera/${alert.cameraId}`, { state: { cameraTransition: 'zoom-card', fromAlert: true } });
+    };
+    const openClip = (alert) => {
+        const params = new URLSearchParams({ clip: '1', alert: alert.id, at: relTime(alert.time), threat: alert.level });
+        navigate(`/camera/${alert.cameraId}?${params.toString()}`, {
+            state: { cameraTransition: 'zoom-card', fromAlert: true, openClip: true },
+        });
+    };
+    return (<div className="alertsPageRoot">
 
-type ThreatFilter = 'all' | 'high' | 'medium' | 'low'
-type StatusFilter = 'all' | 'open' | 'needs review' | 'escalated' | 'reviewed'
-
-export default function AlertsPage({ cameras, alerts: allAlerts, reviewDecisions, searchQuery = '', onReviewAlert }: Props) {
-  const navigate = useNavigate()
-  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null)
-  const [modalAlertId, setModalAlertId] = useState<string | null>(null)
-  const [modalExitVariant, setModalExitVariant] = useState<'default' | 'to-camera'>('default')
-  const [threatFilter, setThreatFilter] = useState<ThreatFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-
-  const alerts = useMemo(() => {
-    return allAlerts
-      .filter((alert) => {
-        const q = searchQuery.trim().toLowerCase()
-        if (!q) return true
-        return `${alert.label} ${alert.camera} ${alert.status} ${alert.summary}`.toLowerCase().includes(q)
-      })
-      .filter((alert) => {
-        if (threatFilter !== 'all' && alert.level !== threatFilter) return false
-        if (statusFilter !== 'all' && alert.status.toLowerCase() !== statusFilter) return false
-        return true
-      })
-  }, [allAlerts, searchQuery, threatFilter, statusFilter])
-
-  useEffect(() => {
-    if (!alerts.length) {
-      setSelectedAlertId(null)
-      if (modalAlertId) setModalAlertId(null)
-      return
-    }
-    setSelectedAlertId((prev) => (prev && alerts.some((a) => a.id === prev) ? prev : alerts[0].id))
-    setModalAlertId((prev) => (prev && alerts.some((a) => a.id === prev) ? prev : prev))
-  }, [alerts, modalAlertId])
-
-  const high = alerts.filter((a) => a.level === 'high').length
-  const medium = alerts.filter((a) => a.level === 'medium').length
-  const low = alerts.filter((a) => a.level === 'low').length
-  const modalAlert = alerts.find((a) => a.id === modalAlertId) ?? null
-
-  const viewCamera = (alert: AlertEvent) => {
-    setModalExitVariant('to-camera')
-    setModalAlertId(null)
-    window.setTimeout(() => {
-      navigate(`/camera/${alert.cameraId}`, { state: { cameraTransition: 'zoom-card', fromAlert: true } })
-      setModalExitVariant('default')
-    }, 200)
-  }
-
-  const openClip = (alert: AlertEvent) => {
-    setModalExitVariant('to-camera')
-    setModalAlertId(null)
-    const params = new URLSearchParams({
-      clip: '1',
-      alert: alert.id,
-      at: relTime(alert.time),
-      threat: alert.level,
-    })
-    window.setTimeout(() => {
-      navigate(`/camera/${alert.cameraId}?${params.toString()}`, {
-        state: { cameraTransition: 'zoom-card', fromAlert: true, openClip: true },
-      })
-      setModalExitVariant('default')
-    }, 200)
-  }
-
-  return (
-    <div className="pageStack">
-      <section className="contentPanel">
-        <div className="sectionRow">
-          <span className="sectionTitle">Alerts</span>
-        </div>
-        <div className="infoGrid">
-          <div className="infoCard">
-            <div className="infoCardLabel">Open Alerts</div>
-            <div className="infoCardValue">{alerts.length}</div>
-            <div className="infoCardSub">Across all cameras</div>
-          </div>
-          <div className="infoCard">
-            <div className="infoCardLabel">High Priority</div>
-            <div className="infoCardValue" style={{ color: 'var(--danger)' }}>{high}</div>
-            <div className="infoCardSub">{medium} medium · {low} low</div>
-          </div>
-          <div className="infoCard">
-            <div className="infoCardLabel">Offline Cameras</div>
-            <div className="infoCardValue">{cameras.filter((c) => c.online === false).length}</div>
-            <div className="infoCardSub">Immediate attention recommended</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="contentPanel pagePanelFill">
-        <div className="sectionRow">
-          <span className="sectionTitle">Alert Feed</span>
-          <div className="alertFiltersMeta">{alerts.length} shown</div>
+      
+      <div className="alertsFilterBar">
+        <div className="alertsSeverityTabs" role="tablist" aria-label="Filter by severity">
+          {['all', 'high', 'medium', 'low'].map((level) => (<button key={level} type="button" role="tab" aria-selected={severityFilter === level} className={`alertsSeverityTab${severityFilter === level ? ' active' : ''}${level !== 'all' ? ` ${level}` : ''}`} onClick={() => setSeverityFilter(level)}>
+              {SEVERITY_LABEL[level]}
+              <span className="alertsTabCount">{counts[level]}</span>
+            </button>))}
         </div>
 
-        <div className="alertFiltersBar">
-          <div className="filterGroup" role="group" aria-label="Severity filter">
-            <span className="filterGroupLabel">Severity</span>
-            <div className="filterPills">
-              {(['all', 'high', 'medium', 'low'] as ThreatFilter[]).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`filterPill${threatFilter === value ? ' active' : ''}${value !== 'all' ? ` ${value}` : ''}`}
-                  onClick={() => setThreatFilter(value)}
-                >
-                  {value === 'all' ? 'All' : value.charAt(0).toUpperCase() + value.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="filterGroup" role="group" aria-label="Status filter">
-            <span className="filterGroupLabel">Status</span>
-            <div className="filterPills">
-              {(['all', 'open', 'needs review', 'escalated', 'reviewed'] as StatusFilter[]).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`filterPill status${statusFilter === value ? ' active' : ''}`}
-                  onClick={() => setStatusFilter(value)}
-                >
-                  {value === 'all'
-                    ? 'All'
-                    : value.split(' ').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="alertsFilterRight">
+          {reviewedCount > 0 && (<span className="alertsResultCount">{reviewedCount} reviewed</span>)}
+          <button type="button" className={`alertsToggleBtn${hideReviewed ? ' active' : ''}`} onClick={() => setHideReviewed((v) => !v)}>
+            {hideReviewed ? 'Show reviewed' : 'Hide reviewed'}
+          </button>
         </div>
+      </div>
 
-        <div className="dataList" role="list">
-          {alerts.map((alert) => {
-            const isSelected = alert.id === selectedAlertId
-            return (
-              <div key={alert.id} role="listitem" className="alertRowGroup">
-                <button
-                  type="button"
-                  className={`dataRow dataRowInteractive threat-${alert.level}${isSelected ? ' selected' : ''}`}
-                  onClick={() => {
-                    setSelectedAlertId(alert.id)
-                    setModalAlertId(alert.id)
-                  }}
-                  aria-expanded={isSelected}
-                >
-                  <div className="dataRowMain">
-                    <span className={`eventPip ${alert.level}`} />
-                    <div className="dataRowText">
-                      <div className="dataRowTitle">{alert.label}</div>
-                      <div className="dataRowSub">{alert.camera}</div>
+      
+      <div className="alertsLayout">
+
+        
+        <div className="alertsListPanel">
+          <div className="alertsListHeader">
+            <span className="alertsListTitle">Alert Feed</span>
+            <span className="alertsResultCount">{alerts.length} shown</span>
+          </div>
+
+          <div className="alertsListScroll" role="list">
+            {alerts.map((alert) => {
+            const isSelected = alert.id === selectedAlertId;
+            const isReviewed = alert.status === 'Reviewed' || !!reviewDecisions[alert.id];
+            return (<button key={alert.id} type="button" role="listitem" className={`alertRow${isSelected ? ' selected' : ''}${isReviewed ? ' reviewed' : ''}`} onClick={() => setSelectedAlertId(alert.id)} aria-current={isSelected ? 'true' : undefined}>
+                  <span className={`alertRowDot ${alert.level}`} aria-hidden="true"/>
+                  <div className="alertRowBody">
+                    <div className="alertRowLabel">{alert.label}</div>
+                    <div className="alertRowMeta">
+                      <span className="alertRowCamera">{alert.camera}</span>
+                      <span className="alertRowMetaSep" aria-hidden="true">·</span>
+                      <span className={`alertRowStatus ${statusClass(alert.status)}`}>{alert.status}</span>
                     </div>
                   </div>
-                  <div className="dataRowMeta">{relTime(alert.time)}</div>
-                  <div className="dataRowBadges">
-                    <span className={`eventBadge ${alert.level}`}>
-                      {alert.level.charAt(0).toUpperCase() + alert.level.slice(1)}
-                    </span>
-                    <span className="dataRowBadge">{alert.status}</span>
-                    {reviewDecisions[alert.id] && (
-                      <span className="dataRowBadge">
-                        {reviewDecisions[alert.id] === 'false-alert' ? 'False alert' : 'Valid alert'}
-                      </span>
-                    )}
+                  <div className="alertRowRight">
+                    <span className="alertRowTime">{relTime(alert.time)}</span>
+                    {isReviewed && (<span className="alertRowCheck" aria-label="Reviewed">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                      </span>)}
                   </div>
-                </button>
-              </div>
-            )
-          })}
-          {alerts.length === 0 && <div className="emptyState">No alerts match your search or filters.</div>}
-        </div>
-      </section>
+                </button>);
+        })}
 
-      <AlertDetailsModal
-        alert={modalAlert}
-        onClose={() => {
-          setModalExitVariant('default')
-          setModalAlertId(null)
-        }}
-        onViewCamera={viewCamera}
-        onOpenClip={openClip}
-        onReviewAlert={onReviewAlert}
-        reviewDecision={modalAlert ? reviewDecisions[modalAlert.id] : undefined}
-        exitVariant={modalExitVariant}
-      />
-    </div>
-  )
+            {alerts.length === 0 && (<div className="alertsListEmpty">
+                <div className="alertsListEmptyIcon">—</div>
+                <div className="alertsListEmptyText">
+                  {hideReviewed
+                ? 'All alerts reviewed. Toggle "Show reviewed" to see them.'
+                : 'No alerts match your filters.'}
+                </div>
+              </div>)}
+          </div>
+        </div>
+
+        
+        <div className="alertsDetailCol">
+          {selectedAlert ? (<AlertDetailPanel alert={selectedAlert} reviewDecision={reviewDecisions[selectedAlert.id]} onReviewAlert={onReviewAlert} onViewCamera={viewCamera} onOpenClip={openClip}/>) : (<div className="alertsDetailEmpty">
+              <div className="alertsDetailEmptyIcon">
+                <IconShield />
+              </div>
+              <div className="alertsDetailEmptyTitle">Select an alert</div>
+              <div className="alertsDetailEmptyText">
+                Click any alert in the list to review what was detected and take action.
+              </div>
+            </div>)}
+        </div>
+      </div>
+    </div>);
 }

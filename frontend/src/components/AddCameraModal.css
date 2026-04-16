@@ -1,0 +1,119 @@
+
+.modalFormGrid {
+  display: grid;
+  gap: 20px;
+}
+
+.modalField {
+  display: grid;
+  gap: 7px;
+}
+
+.modalLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+
+.modalGroupPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.modalGroupPill {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  cursor: pointer;
+}
+
+.modalGroupPill:hover {
+  border-color: var(--border-bright);
+  color: var(--text-1);
+}
+
+.modalGroupPill.selected {
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.modalGroupPill.selected:hover {
+  border-color: var(--accent);
+  background: color-mix(in oklch, var(--accent-dim) 85%, var(--accent) 15%);
+}
+
+.modalGroupPillCheck {
+  font-size: 10px;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+
+.modalCreateGroup {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.modalCreateGroupInput {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.13s;
+}
+
+.modalCreateGroupInput:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.modalCreateGroupInput::placeholder {
+  color: var(--text-3);
+}
+
+.modalCreateGroupBtn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.modalCreateGroupBtn:hover:not(:disabled) {
+  border-color: var(--border-bright);
+  color: var(--text-1);
+}
+
+.modalCreateGroupBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

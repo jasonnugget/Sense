@@ -43,12 +43,7 @@
 
 .infoCard:hover {
   border-color: var(--border-bright);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    0 0 0 1px rgba(255,255,255,0.08),
-    0 0 0 3px rgba(255,255,255,0.035),
-    0 0 18px rgba(255,255,255,0.08),
-    0 10px 20px rgba(0,0,0,0.14);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
@@ -148,9 +143,9 @@
 }
 
 .filterPill.low.active {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-color: rgba(61,217,164,0.2);
+  background: var(--success-dim);
+  color: var(--success);
+  border-color: color-mix(in oklch, var(--success) 25%, transparent);
 }
 
 .dataList {
@@ -660,34 +655,13 @@
   isolation: isolate;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(255,255,255,0.13), transparent 48%),
-    radial-gradient(120% 120% at 100% 100%, rgba(255,255,255,0.07), transparent 54%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 100%, white 8%), color-mix(in srgb, var(--surface) 90%, white 12%));
+  background: var(--surface);
   padding: 16px;
   margin-bottom: 14px;
   flex-shrink: 0;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    0 0 0 1px rgba(255,255,255,0.03),
-    0 0 18px rgba(0,0,0,0.12),
-    0 0 40px rgba(0,0,0,0.12);
+  box-shadow: var(--shadow-sm);
 }
 
-.contentPanel::before {
-  content: '';
-  position: absolute;
-  inset: -5px;
-  border-radius: 10px;
-  z-index: -1;
-  pointer-events: none;
-  border: 0;
-  background: rgba(6, 8, 14, 0.18);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.02),
-    0 0 0 2px rgba(255,255,255,0.012),
-    0 0 22px rgba(0,0,0,0.10);
-}
 
 .contentPanel .sectionRow {
   margin-bottom: 12px;
@@ -711,7 +685,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  overflow-x: visible;
+  overflow-x: hidden;
   margin-bottom: 0;
 }
 
@@ -727,7 +701,7 @@
 .contentPanelCameras .dashboard {
   flex: 1;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
   padding-right: 2px;
   align-content: start;
   gap: 12px;
@@ -792,18 +766,18 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 700;
-  color: #09090a;
-  background: #ffffff;
-  border-color: rgba(255,255,255,0.8);
+  color: #fff;
+  background: var(--accent);
+  border-color: transparent;
   border-radius: 16px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--accent) 35%, transparent);
 }
 
 .sectionActionPrimary:hover {
-  color: #09090a;
-  background: #ffffff;
-  border-color: #ffffff;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  color: #fff;
+  background: color-mix(in oklch, var(--accent) 88%, oklch(0% 0 0) 12%);
+  border-color: transparent;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--accent) 40%, transparent);
 }
 
 .sectionActionsGroup {
@@ -889,6 +863,43 @@
   font-weight: 700;
 }
 
+
+.cameraGroupTabWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+
+
+.cameraGroupTabDelete {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  z-index: 1;
+  cursor: pointer;
+  transition: opacity 0.12s, color 0.12s, background 0.12s, border-color 0.12s;
+}
+
+.cameraGroupTabWrap:hover .cameraGroupTabDelete {
+  opacity: 1;
+}
+
+.cameraGroupTabDelete:hover {
+  color: var(--danger);
+  background: var(--danger-dim);
+  border-color: color-mix(in oklch, var(--danger) 35%, var(--border));
+}
+
 .miniToggle {
   display: inline-flex;
   align-items: center;
@@ -918,4 +929,194 @@
   color: var(--text-1);
   background: color-mix(in srgb, var(--surface-raised) 92%, white 2%);
   border-color: var(--border);
+}
+
+
+.cameraRemoveModal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.cameraRemoveModalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: oklch(0% 0 0 / 0.68);
+  backdrop-filter: blur(12px) saturate(60%);
+  -webkit-backdrop-filter: blur(12px) saturate(60%);
+  border: none;
+  cursor: default;
+  padding: 0;
+}
+
+:root:not([data-theme='dark']) .cameraRemoveModalBackdrop {
+  background: oklch(15% 0.01 260 / 0.5);
+  backdrop-filter: blur(12px) saturate(50%) brightness(0.65);
+  -webkit-backdrop-filter: blur(12px) saturate(50%) brightness(0.65);
+}
+
+.cameraRemoveModalCard {
+  position: relative;
+  z-index: 1;
+  width: min(400px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 32px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  animation: cameraRemoveModalIn 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes cameraRemoveModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.cameraRemoveModalIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--danger-dim);
+  border: 1px solid color-mix(in oklch, var(--danger) 22%, var(--border));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger);
+  margin-bottom: 4px;
+}
+
+.cameraRemoveModalTitle {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+
+.cameraRemoveModalMsg {
+  font-size: 13px;
+  color: var(--text-3);
+  line-height: 1.55;
+  max-width: 34ch;
+}
+
+.cameraRemoveModalMsg strong {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.cameraRemoveModalActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cameraDangerConfirmBtn {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: var(--danger);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.13s;
+}
+
+.cameraDangerConfirmBtn:hover {
+  background: color-mix(in oklch, var(--danger) 88%, oklch(0% 0 0) 12%);
+}
+
+
+.groupDeletePopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+}
+
+.groupDeletePopoverBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: transparent;
+  border: none;
+  cursor: default;
+  padding: 0;
+}
+
+.groupDeletePopoverCard {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 14px 16px 12px;
+  min-width: 192px;
+  white-space: nowrap;
+}
+
+.groupDeletePopoverMsg {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.groupDeletePopoverSub {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+.groupDeletePopoverActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.groupDeletePopoverCancel {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.groupDeletePopoverCancel:hover {
+  border-color: var(--border-bright);
+  color: var(--text-1);
+}
+
+.groupDeletePopoverConfirm {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in oklch, var(--danger) 30%, var(--border));
+  background: var(--danger-dim);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.groupDeletePopoverConfirm:hover {
+  background: color-mix(in oklch, var(--danger-dim) 85%, var(--danger) 15%);
+  border-color: color-mix(in oklch, var(--danger) 45%, var(--border));
 }

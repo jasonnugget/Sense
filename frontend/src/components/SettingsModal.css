@@ -101,14 +101,14 @@
 }
 
 .settingsBtn.primary {
-  background: #ffffff;
-  border-color: rgba(255, 255, 255, 0.72);
-  color: #09090a;
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
 }
 
 .settingsBtn.primary:hover:not(:disabled) {
-  background: #ffffff;
-  border-color: #ffffff;
+  background: color-mix(in oklch, var(--accent) 88%, oklch(0% 0 0) 12%);
+  border-color: transparent;
 }
 
 .settingsBtn:disabled {
@@ -130,8 +130,8 @@
 }
 
 .settingsBody input:focus {
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
 .settingsBody input::placeholder {

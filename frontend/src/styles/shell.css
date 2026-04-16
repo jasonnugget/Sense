@@ -15,7 +15,7 @@
   padding: 0 28px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  z-index: 50;
+  z-index: 1100;
 
   border-radius: 0 !important;
   border-left: none !important;
@@ -28,10 +28,12 @@
 .topBar::before, .topBar::after { display: none !important; }
 
 .topBarLogo {
-  font-size: 26px;
+  font-family: var(--font-display);
+  font-size: 20px;
   line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.025em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text-1);
   display: flex;
   align-items: center;
@@ -40,75 +42,9 @@
 }
 
 .topBarWordmark {
-  position: relative;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0;
+  display: inline-block;
   color: var(--text-1);
 }
-
-.topBarWordmarkChar {
-  display: inline-block;
-  color: inherit;
-  animation: wordmarkCharGlow 4s linear infinite;
-  animation-delay: calc(var(--char-i) * 150ms);
-  will-change: text-shadow;
-}
-
-@keyframes wordmarkCharGlow {
-  0% {
-    text-shadow:
-      0 0 0 rgba(255,255,255,0),
-      0 0 0 rgba(255,255,255,0);
-  }
-  8% {
-    text-shadow:
-      0 0 2px rgba(255,255,255,0.10),
-      0 0 4px rgba(255,255,255,0.04);
-  }
-  16% {
-    text-shadow:
-      0 0 5px rgba(255,255,255,0.26),
-      0 0 10px rgba(255,255,255,0.10),
-      0 0 16px rgba(255,255,255,0.04);
-  }
-  24% {
-    text-shadow:
-      0 0 7px rgba(255,255,255,0.46),
-      0 0 14px rgba(255,255,255,0.20),
-      0 0 22px rgba(255,255,255,0.08);
-  }
-  34% {
-    text-shadow:
-      0 0 5px rgba(255,255,255,0.24),
-      0 0 10px rgba(255,255,255,0.10),
-      0 0 16px rgba(255,255,255,0.04);
-  }
-  44% {
-    text-shadow:
-      0 0 2px rgba(255,255,255,0.08),
-      0 0 4px rgba(255,255,255,0.03);
-  }
-  100% {
-    text-shadow:
-      0 0 0 rgba(255,255,255,0),
-      0 0 0 rgba(255,255,255,0);
-  }
-}
-
-.topBarLogoMark {
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-bright);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 18px rgba(0,0,0,0.25);
-}
-
-.topBarLogoMark svg { color: var(--text-1); }
 
 .topBarLeft {
   display: flex;
@@ -124,14 +60,16 @@
 }
 
 .topNavLink {
-  height: 32px;
+  height: 30px;
   padding: 0 12px;
   border-radius: 4px;
   border: 1px solid transparent;
   color: var(--text-3);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -141,15 +79,16 @@
 
 .topNavLink:hover {
   color: var(--text-1);
+}
+
+.topNavLink:not(.active):hover {
   background: color-mix(in srgb, var(--surface-raised) 90%, transparent);
   border-color: var(--border);
 }
 
 .topNavLink.active {
   color: var(--text-1);
-  background: color-mix(in srgb, var(--surface-raised) 96%, white 3%);
-  border-color: var(--border-bright);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  font-weight: 700;
 }
 
 .topActions { display: flex; align-items: center; gap: 10px; }
@@ -209,13 +148,14 @@
 .topBarButton:hover, .pillBtn:hover { border-color: var(--border-bright); color: var(--text-1); }
 
 .topBarButton.primary {
-  background: #ffffff;
-  border-color: rgba(255,255,255,0.72);
-  color: #09090a;
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
 }
 .topBarButton.primary:hover {
-  background: #ffffff;
-  border-color: #ffffff;
+  background: color-mix(in oklch, var(--accent) 88%, oklch(0% 0 0) 12%);
+  border-color: transparent;
+  color: #fff;
 }
 
 .appBody {
@@ -267,10 +207,7 @@
   isolation: isolate;
   width: var(--panel-w);
   flex-shrink: 0;
-  background:
-    radial-gradient(120% 120% at 0% 0%, rgba(255,255,255,0.13), transparent 48%),
-    radial-gradient(140% 120% at 100% 100%, rgba(255,255,255,0.08), transparent 55%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 100%, white 8%), color-mix(in srgb, var(--surface) 90%, white 12%));
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   display: flex;
@@ -416,21 +353,11 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 .threatPill:last-child { margin-bottom: 0; }
-.threatPill.high   { background: linear-gradient(180deg, color-mix(in srgb, var(--danger-dim) 100%, white 14%), var(--danger-dim)); }
-.threatPill.medium { background: linear-gradient(180deg, color-mix(in srgb, var(--warning-dim) 100%, white 14%), var(--warning-dim)); }
-.threatPill.low    { background: linear-gradient(180deg, color-mix(in srgb, var(--accent-dim) 100%, white 14%), var(--accent-dim)); }
+.threatPill.high   { background: var(--danger-dim); }
+.threatPill.medium { background: var(--warning-dim); }
+.threatPill.low    { background: var(--success-dim); }
 
 .threatPillLeft { display: flex; align-items: center; gap: 8px; }
-
-.threatPillDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.threatPill.high   .threatPillDot { background: var(--danger);  box-shadow: 0 0 6px rgba(255,82,82,0.5); }
-.threatPill.medium .threatPillDot { background: var(--warning); box-shadow: 0 0 6px rgba(255,179,71,0.4); }
-.threatPill.low    .threatPillDot { background: var(--accent);  box-shadow: 0 0 6px rgba(61,217,164,0.4); }
 
 .threatPillLabel  { font-size: 12px; font-weight: 600; color: var(--text-1); }
 .threatPillSub    { font-size: 10px; color: var(--text-3); }
@@ -444,7 +371,7 @@
 }
 .threatPill.high   .threatPillCount { color: var(--danger); }
 .threatPill.medium .threatPillCount { color: var(--warning); }
-.threatPill.low    .threatPillCount { color: var(--accent); }
+.threatPill.low    .threatPillCount { color: var(--success); }
 
 .eventList {
   display: flex;
@@ -474,7 +401,7 @@
   border: 0;
   background: color-mix(in srgb, var(--surface) 96%, #000 4%);
 }
-.eventRow:hover { background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); }
+.eventRow:hover { background: color-mix(in srgb, var(--surface-raised) 96%, #000 4%); }
 
 .eventRowInteractive {
   width: 100%;
@@ -487,16 +414,6 @@
   outline-offset: 2px;
 }
 
-.eventPip {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.eventPip.high { background: var(--danger); box-shadow: 0 0 6px rgba(255,82,82,0.45); }
-.eventPip.medium { background: var(--warning); box-shadow: 0 0 6px rgba(255,179,71,0.38); }
-.eventPip.low { background: var(--accent); box-shadow: 0 0 6px rgba(61,217,164,0.4); }
-
 .eventInfo { flex: 1; min-width: 0; }
 .eventLabel  { font-size: 12px; font-weight: 500; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .eventCamera { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; }
@@ -504,14 +421,16 @@
 .eventBadge {
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 2px 0;
   border-radius: 12px;
   white-space: nowrap;
   flex-shrink: 0;
+  min-width: 52px;
+  text-align: center;
 }
 .eventBadge.high   { background: var(--danger-dim);  color: var(--danger); border: 1px solid rgba(255,82,82,0.18); }
 .eventBadge.medium { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(255,179,71,0.16); }
-.eventBadge.low    { background: var(--accent-dim);  color: var(--accent); border: 1px solid rgba(61,217,164,0.16); }
+.eventBadge.low    { background: var(--success-dim); color: var(--success); border: 1px solid color-mix(in oklch, var(--success) 22%, transparent); }
 
 .eventTime {
   font-family: var(--mono);
@@ -709,3 +628,4 @@
     animation: none !important;
   }
 }
+
