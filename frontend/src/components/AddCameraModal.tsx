@@ -24,6 +24,10 @@ export default function AddCameraModal({ open, onClose, onSaveDetails, title = '
     const [streamUrl, setStreamUrl] = useState('');
 
     useEffect(() => {
+        // Seed draft state only when the modal opens. Parents pass fresh
+        // defaults like `initialGroupIds={cam?.groupIds ?? []}` — including
+        // them as deps would wipe the user's in-progress input every time
+        // the parent re-renders (camera status polling, SSE alerts, etc.).
         if (!open) return;
         setDraftName(initialName);
         setDraftLocation(initialLocation);
@@ -33,7 +37,8 @@ export default function AddCameraModal({ open, onClose, onSaveDetails, title = '
         setLocalDeviceIndex('0');
         setStreamUrl('');
         setEnumError(null);
-    }, [open, initialName, initialLocation, initialGroupIds]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
 
     // Enumerate the device's video inputs when Local camera is selected.
     // Labels are only populated after the user grants getUserMedia permission,

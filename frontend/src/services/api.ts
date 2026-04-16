@@ -38,31 +38,57 @@ export async function getCameraStatus(cameraId?: string): Promise<any> {
   return res.json();
 }
 
+/**
+ * Wrapper around fetch that turns every failure path into a useful error.
+ * Default fetch errors are opaque ("Unknown error") which makes it hard for
+ * someone running the app locally to tell "backend not started" from
+ * "camera permission denied" from "server crashed".
+ */
+async function apiFetch(url: string, init: RequestInit, action: string): Promise<Response> {
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch (err) {
+    throw new Error(
+      `${action}: backend unreachable. Is the FastAPI server running on http://localhost:8000? ` +
+      `(cd backend && uvicorn app.main:app --reload)`
+    );
+  }
+  if (!res.ok) {
+    let detail: any = null;
+    try { detail = await res.json(); } catch { /* response wasn't JSON */ }
+    const backendMsg = detail?.detail;
+    if (backendMsg) throw new Error(backendMsg);
+    throw new Error(`${action} failed (HTTP ${res.status}${res.statusText ? ' ' + res.statusText : ''}).`);
+  }
+  return res;
+}
+
 /** Tell the backend to start capturing from a specific camera. */
 export async function startCamera(cameraId: string, source: string | number = 0): Promise<any> {
-  const res = await fetch(`${API_BASE}/camera/start`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ camera_id: cameraId, source }),
-  });
-  if (!res.ok) {
-    const detail = await res.json().catch(() => ({ detail: 'Unknown error' }));
-    throw new Error(detail.detail || `Start camera failed: ${res.status}`);
-  }
+  const res = await apiFetch(
+    `${API_BASE}/camera/start`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ camera_id: cameraId, source }),
+    },
+    'Start camera',
+  );
   return res.json();
 }
 
 /** Tell the backend to stop a specific camera. */
 export async function stopCamera(cameraId: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/camera/stop`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ camera_id: cameraId }),
-  });
-  if (!res.ok) {
-    const detail = await res.json().catch(() => ({ detail: 'Unknown error' }));
-    throw new Error(detail.detail || `Stop camera failed: ${res.status}`);
-  }
+  const res = await apiFetch(
+    `${API_BASE}/camera/stop`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ camera_id: cameraId }),
+    },
+    'Stop camera',
+  );
   return res.json();
 }
 
