@@ -1,17 +1,36 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import logging
+import os
 
 from app.routes import health, camera, incidents, stream
 from app.db.database import create_tables
 from app.services.detector import load_model
 
+log = logging.getLogger("uvicorn.error")
+
+# Model filename inside backend/models/. Override with SENSE_MODEL env var.
+MODEL_PATH = os.getenv("SENSE_MODEL", "models/SenseV2Training.pt")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Runs once at startup: create DB tables and load the YOLO model."""
-    create_tables()
-    load_model("models/yolov8n.pt")
+    """Runs once at startup: create DB tables and load the YOLO model.
+
+    Failures here are logged but do not crash the server — the frontend
+    still needs to be able to reach endpoints like /health to diagnose.
+    """
+    try:
+        create_tables()
+    except Exception as e:
+        log.warning("DB init failed (incidents will not persist): %s", e)
+
+    try:
+        load_model(MODEL_PATH)
+    except Exception as e:
+        log.error("YOLO model failed to load from %s: %s", MODEL_PATH, e)
+
     yield
 
 

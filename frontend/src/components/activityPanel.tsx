@@ -1,22 +1,7 @@
 import { useMemo } from 'react';
-function useMockEvents() {
-    return useMemo(() => [
-        { id: '1', cameraId: 'parking-lot', level: 'low', camera: 'Parking Lot', label: 'Motion detected', time: new Date(Date.now() - 60_000 * 18), status: 'Open', summary: 'Routine motion event in Parking Lot.', action: 'No action required.' },
-        { id: '2', cameraId: 'front-door', level: 'medium', camera: 'Front Door', label: 'Unknown person', time: new Date(Date.now() - 60_000 * 54), status: 'Needs review', summary: 'Unidentified person at Front Door.', action: 'Review the clip.' },
-        { id: '3', cameraId: 'parking-lot', level: 'low', camera: 'Parking Lot', label: 'Vehicle movement', time: new Date(Date.now() - 60_000 * 130), status: 'Open', summary: 'Vehicle movement detected.', action: 'No action required.' },
-        { id: '4', cameraId: 'front-door', level: 'high', camera: 'Front Door', label: 'Forced entry attempt', time: new Date(Date.now() - 60_000 * 210), status: 'Escalated', summary: 'Possible forced entry attempt.', action: 'Escalate to security.' },
-        { id: '5', cameraId: 'parking-lot', level: 'low', camera: 'Parking Lot', label: 'Motion detected', time: new Date(Date.now() - 60_000 * 380), status: 'Open', summary: 'Routine motion event in Parking Lot.', action: 'No action required.' },
-        { id: '6', cameraId: 'parking-lot', level: 'medium', camera: 'Parking Lot', label: 'Loitering detected', time: new Date(Date.now() - 60_000 * 570), status: 'Open', summary: 'Loitering threshold exceeded in parking lot.', action: 'Review and tune thresholds if needed.' },
-        { id: '7', cameraId: 'loading-dock', level: 'low', camera: 'Loading Dock', label: 'Motion detected', time: new Date(Date.now() - 60_000 * 760), status: 'Open', summary: 'Loading dock motion detected.', action: 'No action required.' },
-        { id: '8', cameraId: 'hallway-east', level: 'medium', camera: 'Hallway', label: 'Unknown person', time: new Date(Date.now() - 60_000 * 930), status: 'Needs review', summary: 'Unknown person detected in hallway.', action: 'Review badge/access logs.' },
-        { id: '9', cameraId: 'rear-gate', level: 'low', camera: 'Rear Gate', label: 'Vehicle movement', time: new Date(Date.now() - 60_000 * 1110), status: 'Open', summary: 'Vehicle movement at rear gate.', action: 'No action required.' },
-        { id: '10', cameraId: 'server-room', level: 'high', camera: 'Server Room', label: 'Unauthorized access', time: new Date(Date.now() - 60_000 * 1290), status: 'Open', summary: 'Unauthorized access detected.', action: 'Investigate immediately.' },
-        { id: '11', cameraId: 'parking-lot', level: 'low', camera: 'Parking Lot', label: 'Motion detected', time: new Date(Date.now() - 60_000 * 1480), status: 'Open', summary: 'Routine motion event in Parking Lot.', action: 'No action required.' },
-        { id: '12', cameraId: 'front-door', level: 'medium', camera: 'Front Door', label: 'Loitering detected', time: new Date(Date.now() - 60_000 * 1680), status: 'Open', summary: 'Loitering detected at front door.', action: 'Review visitor behavior.' },
-        { id: '13', cameraId: 'back-alley', level: 'low', camera: 'Back Alley', label: 'Motion detected', time: new Date(Date.now() - 60_000 * 1880), status: 'Open', summary: 'Motion detected in back alley.', action: 'No action required.' },
-        { id: '14', cameraId: 'front-door', level: 'high', camera: 'Front Door', label: 'Forced entry attempt', time: new Date(Date.now() - 60_000 * 2100), status: 'Escalated', summary: 'Potential forced entry attempt at front door.', action: 'Escalate to security.' },
-    ], []);
-}
+// NOTE: The previous `useMockEvents()` fixture was removed so this panel only
+// shows real events pushed from the backend via SSE. If `events` is undefined
+// we render an empty list instead of fabricating demo data.
 function relTime(d) {
     const s = Math.floor((Date.now() - d.getTime()) / 1000);
     if (s < 60)
@@ -26,7 +11,7 @@ function relTime(d) {
     return `${Math.floor(s / 3600)}h ago`;
 }
 export default function ActivityPanel({ events, onEventClick }) {
-    const display = events ?? useMockEvents();
+    const display = events ?? [];
     const counts = useMemo(() => ({
         high: display.filter((e) => e.level === 'high').length,
         medium: display.filter((e) => e.level === 'medium').length,
@@ -86,6 +71,9 @@ export default function ActivityPanel({ events, onEventClick }) {
             </span>
             <span className="eventTime">{relTime(event.time)}</span>
           </button>))}
+        {display.length === 0 && (<div className="emptyState" style={{ padding: '18px 4px', fontSize: 12 }}>
+            No events yet. Start a camera to see real detections here.
+          </div>)}
       </div>
     </aside>);
 }

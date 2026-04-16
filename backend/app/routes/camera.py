@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from app.schemas.frame_meta import FrameMeta, CameraStartRequest, CameraStopRequest
 from app.services.frame_reader import frame_reader
 from app.services.video_stream import clear_frame, clear_all_frames
+import cv2
 import threading
 
 # ── Camera registry ──────────────────────────────────────────────────────────
@@ -56,12 +57,33 @@ def search_frames(frame_id: str):
 
 @router.post("/camera/start")
 def camera_start(payload: CameraStartRequest):
-    """Start detection on a camera. Each camera_id can only run once at a time."""
+    """Start detection on a camera. Each camera_id can only run once at a time.
+
+    We probe the source synchronously (cv2.VideoCapture + isOpened) before
+    spawning the capture thread. That way, if the webcam index is wrong or
+    the RTSP URL is unreachable, the POST itself returns 400 with a clear
+    reason — instead of silently "starting" a thread that dies immediately.
+    """
     with _lock:
         if payload.camera_id in _cameras:
             raise HTTPException(
                 status_code=409,
                 detail=f"Camera '{payload.camera_id}' is already running."
+            )
+
+        # Synchronous open check. This gives the frontend an immediate, actionable
+        # error if the user typed the wrong RTSP URL or picked a webcam index
+        # that doesn't exist on this machine.
+        probe = cv2.VideoCapture(payload.source)
+        opened = probe.isOpened()
+        probe.release()
+        if not opened:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Could not open source '{payload.source}'. "
+                    "Check the webcam index / URL and OS camera permissions."
+                ),
             )
 
         stop_event = threading.Event()

@@ -2,8 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { getStream, subscribe, unsubscribe } from '../data/cameraStreamStore';
+import { getVideoFeedUrl } from '../services/api';
 import './CameraCard.css';
-export default function CameraCard({ id, name, location, preview, online = false, pinned = false, onTogglePin, onEdit, onAssignGroups, onRemove, }) {
+export default function CameraCard({ id, name, location, preview, online = false, pinned = false, backendLive = false, onTogglePin, onEdit, onAssignGroups, onRemove, }) {
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
     const [confirmRemove, setConfirmRemove] = useState(false);
@@ -105,7 +106,25 @@ export default function CameraCard({ id, name, location, preview, online = false
       
       <div className="cameraShell">
         <div className="cameraPreview">
-          {liveStream ? (<video ref={liveVideoRef} className="cameraLiveThumb" muted playsInline autoPlay/>) : preview ? (<img src={preview} alt={name}/>) : (<div className="cameraOffline">
+          {/* Preview priority:
+              1. backendLive → MJPEG feed from /api/video/feed/{id}. This is
+                 the annotated detection stream, so the card shows live
+                 bounding boxes even after the user navigates off CameraPage.
+              2. liveStream → local browser getUserMedia preview (no boxes).
+              3. static preview image, if provided.
+              4. Offline placeholder. */}
+          {backendLive ? (
+            <img
+              className="cameraLiveThumb"
+              src={getVideoFeedUrl(id)}
+              alt={`${name} live detection feed`}
+            />
+          ) : liveStream ? (
+            <video ref={liveVideoRef} className="cameraLiveThumb" muted playsInline autoPlay/>
+          ) : preview ? (
+            <img src={preview} alt={name}/>
+          ) : (
+            <div className="cameraOffline">
               <div className="offlineContent">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="1" y1="1" x2="23" y2="23"/>
@@ -113,13 +132,13 @@ export default function CameraCard({ id, name, location, preview, online = false
                 </svg>
                 <span>Offline</span>
               </div>
-            </div>)}
+            </div>
+          )}
         </div>
 
-        
-        <div className={`cameraStatusBadge${(online || !!liveStream) ? ' online' : ' offline'}`} aria-label={(online || !!liveStream) ? 'Live' : 'Offline'}>
+        <div className={`cameraStatusBadge${(backendLive || online || !!liveStream) ? ' online' : ' offline'}`} aria-label={backendLive ? 'Detecting' : (online || !!liveStream) ? 'Live' : 'Offline'}>
           <span className="cameraStatusDot"/>
-          <span>{(online || !!liveStream) ? 'Live' : 'Offline'}</span>
+          <span>{backendLive ? 'Detecting' : (online || !!liveStream) ? 'Live' : 'Offline'}</span>
         </div>
 
         

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import CameraCard from '../components/CameraCard';
+import AddCameraCard from '../components/AddCameraCard';
 import AddCameraModal from '../components/AddCameraModal';
 import SettingsModal from '../components/SettingsModal';
-export default function MainPage({ cameras, groups, onSaveDetails, onTogglePin, onAssignGroups, onAddGroup, onDeleteGroup, onRemove, onAddCamera, }) {
+export default function MainPage({ cameras, groups, liveCameraIds, onSaveDetails, onTogglePin, onAssignGroups, onAddGroup, onDeleteGroup, onRemove, onAddCamera, }) {
     const [addOpen, setAddOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [selectedGroupId, setSelectedGroupId] = useState('all');
@@ -120,8 +121,17 @@ export default function MainPage({ cameras, groups, onSaveDetails, onTogglePin, 
         </div>
 
         <div className="dashboard">
-          {camerasForPage.map((cam) => (<CameraCard key={cam.id} id={cam.id} name={cam.name} location={cam.location} preview={cam.preview} online={!!cam.online} pinned={!!cam.pinned} onTogglePin={onTogglePin} onEdit={openEdit} onAssignGroups={openAssignGroups} onRemove={onRemove}/>))}
-          {camerasForPage.length === 0 && (<div className="emptyState">No cameras match this group.</div>)}
+          {camerasForPage.map((cam) => (<CameraCard key={cam.id} id={cam.id} name={cam.name} location={cam.location} preview={cam.preview} online={!!cam.online} pinned={!!cam.pinned} backendLive={!!liveCameraIds?.has?.(cam.id)} onTogglePin={onTogglePin} onEdit={openEdit} onAssignGroups={openAssignGroups} onRemove={onRemove}/>))}
+          {/* Always render an "add" tile at the end of the grid so users can
+              create a new camera straight from the dashboard. When the list
+              is empty this is the only card shown. */}
+          <AddCameraCard onClick={onAddCamera} />
+          {cameras.length === 0 && selectedGroupId === 'all' && (
+            <div className="emptyState">No cameras yet. Click "Add Camera" to get started.</div>
+          )}
+          {cameras.length > 0 && camerasForPage.length === 0 && (
+            <div className="emptyState">No cameras match this group.</div>
+          )}
         </div>
       </section>
 

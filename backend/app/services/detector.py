@@ -36,11 +36,15 @@ def load_model(model_path: str) -> dict:
         model = YOLO(str(p))
         return {"loaded": True, "model_path": str(p)}
 
-def run_inference(frame, frame_meta: FrameMeta) -> list[ObjectDetection]:
+def run_inference(frame, frame_meta: FrameMeta, imgsz: int = 416) -> list[ObjectDetection]:
     if model is None:
         raise RuntimeError("Model not loaded. Call load_model() first.")
 
-    results=model(frame, verbose=False)
+    # imgsz controls YOLO's internal input resolution. The default is 640,
+    # but 416 roughly halves inference time with minimal accuracy loss at
+    # surveillance distances. Detections are reported in original-frame
+    # coordinates regardless, so no post-scaling is needed here.
+    results = model(frame, imgsz=imgsz, verbose=False)
     if not results:
         return []
 

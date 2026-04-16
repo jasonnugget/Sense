@@ -22,7 +22,7 @@ from fastapi.responses import StreamingResponse
 import asyncio
 import json
 
-from app.services.video_stream import get_frame
+from app.services.video_stream import get_frame_with_seq, wait_for_new_frame
 
 router = APIRouter()
 
@@ -60,20 +60,34 @@ def stream_alerts():
 
 async def mjpeg_generator(camera_id: str):
     """
-    MJPEG generator for a specific camera. Reads the latest annotated frame
-    from that camera's buffer and yields it as a multipart JPEG response.
+    MJPEG generator for a specific camera. Waits on the frame buffer's
+    condition variable so clients receive each new frame as soon as the
+    capture thread publishes it, without the 33ms polling delay the old
+    sleep-loop introduced.
     """
+    loop = asyncio.get_event_loop()
+    frame, last_seq = get_frame_with_seq(camera_id)
+    if frame is not None:
+        yield (
+            b"--frame\r\n"
+            b"Content-Type: image/jpeg\r\n\r\n"
+            + frame
+            + b"\r\n"
+        )
+
     while True:
-        frame = get_frame(camera_id)
-        if frame is not None:
-            yield (
-                b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n"
-                + frame
-                + b"\r\n"
-            )
-        # ~30 FPS max — matches the frame_reader capture rate
-        await asyncio.sleep(0.033)
+        # Offload the blocking wait to a thread so the event loop stays free.
+        frame, last_seq = await loop.run_in_executor(
+            None, wait_for_new_frame, camera_id, last_seq, 1.0
+        )
+        if frame is None:
+            continue
+        yield (
+            b"--frame\r\n"
+            b"Content-Type: image/jpeg\r\n\r\n"
+            + frame
+            + b"\r\n"
+        )
 
 
 @router.get("/video/feed/{camera_id}")

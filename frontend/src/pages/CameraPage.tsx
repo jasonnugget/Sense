@@ -213,6 +213,7 @@ export default function CameraPage({ cameras = [] }: { cameras?: any[] }) {
             const source = camera?.source ?? 0;
             await startCamera(cameraId, source);
             setDetectionMode('live');
+            window.dispatchEvent(new Event('ui:camera-status-changed'));
         } catch (err) {
             const msg = err instanceof Error ? err.message : 'Failed to start detection.';
             setDetectionMode('error');
@@ -227,6 +228,7 @@ export default function CameraPage({ cameras = [] }: { cameras?: any[] }) {
             await stopCamera(cameraId);
             setDetectionMode('off');
             setDetectionError(null);
+            window.dispatchEvent(new Event('ui:camera-status-changed'));
         } catch (err) {
             const msg = err instanceof Error ? err.message : 'Failed to stop detection.';
             setDetectionMode('error');

@@ -8,11 +8,16 @@ import AlertsPage from '../pages/AlertsPage';
 import CamerasPage from '../pages/CamerasPage';
 import SettingsModal from '../components/SettingsModal';
 import ThemeSegmented from '../components/ThemeSegmented';
-import { buildAlertEvents, relTime } from '../data/alerts';
+import { relTime } from '../data/alerts';
 import useBackendAlerts from '../hooks/useBackendAlerts';
+import { stopCamera, getCameraStatus } from '../services/api';
 import '../App.css';
+// localStorage keys — keep cameras/groups/etc. across page reloads.
+// CAMERAS_KEY was added when we removed the hardcoded camera list so the
+// user's real cameras persist after a refresh.
 const PINNED_KEY = 'pinnedCameras';
 const GROUPS_KEY = 'cameraGroups';
+const CAMERAS_KEY = 'cameras';
 const COLORBLIND_KEY = 'colorblindMode';
 const DEFAULT_GROUPS = [
     { id: 'parking-lot', name: 'Parking Lot' },
@@ -173,20 +178,22 @@ export default function App() {
             return DEFAULT_GROUPS;
         }
     });
+    // Cameras start empty — the user adds their own via the "Add new +" button.
+    // We rehydrate from localStorage so cameras survive a page reload, but we
+    // never seed with demo data anymore.
     const [cameras, setCameras] = useState(() => {
-        const pinned = new Set(JSON.parse(localStorage.getItem(PINNED_KEY) || '[]'));
-        return [
-            { id: 'parking-lot', name: 'Parking Lot', location: 'Exterior', pinned: pinned.has('parking-lot'), online: true, groupIds: ['parking-lot'], source: 0 },
-            { id: 'front-door', name: 'Front Door', location: 'Home', pinned: pinned.has('front-door'), online: false, groupIds: [], source: 0 },
-            { id: 'loading-dock', name: 'Loading Dock', location: 'Warehouse', pinned: pinned.has('loading-dock'), online: true, groupIds: ['perimeter'], source: 0 },
-            { id: 'rear-gate', name: 'Rear Gate', location: 'Perimeter', pinned: pinned.has('rear-gate'), online: true, groupIds: ['perimeter'], source: 0 },
-            { id: 'server-room', name: 'Server Room', location: 'IT Floor', pinned: pinned.has('server-room'), online: false, groupIds: [], source: 0 },
-            { id: 'hallway-east', name: 'Hallway East', location: 'Level 2', pinned: pinned.has('hallway-east'), online: true, groupIds: [], source: 0 },
-            { id: 'lobby', name: 'Lobby', location: 'Main Entrance', pinned: pinned.has('lobby'), online: true, groupIds: ['lobby'], source: 0 },
-            { id: 'back-alley', name: 'Back Alley', location: 'Service Area', pinned: pinned.has('back-alley'), online: false, groupIds: ['perimeter'], source: 0 },
-        ];
+        try {
+            const raw = localStorage.getItem(CAMERAS_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return [];
+            return parsed;
+        } catch {
+            return [];
+        }
     });
     useEffect(() => {
+        localStorage.setItem(CAMERAS_KEY, JSON.stringify(cameras));
         localStorage.setItem(PINNED_KEY, JSON.stringify(cameras.filter(c => c.pinned).map(c => c.id)));
     }, [cameras]);
     useEffect(() => {
@@ -217,6 +224,10 @@ export default function App() {
         });
     };
     const removeCamera = (id) => {
+        // Best-effort: tell the backend to stop capturing this camera too,
+        // so a stale capture thread doesn't keep the device locked after
+        // the card is gone. We ignore the 409 "not running" error.
+        stopCamera(id).catch(() => undefined);
         setCameras(prev => prev.filter(c => c.id !== id));
     };
     const addGroup = (name) => {
@@ -253,14 +264,57 @@ export default function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [alertStatusOverrides, setAlertStatusOverrides] = useState({});
     const [alertReviewDecisions, setAlertReviewDecisions] = useState({});
-    // Connect to backend SSE for real-time YOLO detection alerts
+    // Live-camera registry. Polls /api/camera/status every ~3s so the
+    // dashboard knows which cameras the backend is actively capturing.
+    // CameraCards use this to swap their static thumbnail for the MJPEG
+    // feed — meaning if you click Go Live on a camera and then navigate
+    // back to the dashboard, the card keeps showing live detection
+    // video while the backend keeps analyzing frames.
+    const [liveCameraIds, setLiveCameraIds] = useState<Set<string>>(new Set());
+    useEffect(() => {
+        let cancelled = false;
+        const refresh = async () => {
+            try {
+                const status = await getCameraStatus();
+                if (cancelled) return;
+                const running = new Set<string>(
+                    (status?.cameras ?? [])
+                        .filter((c: any) => c?.is_running)
+                        .map((c: any) => c.camera_id)
+                );
+                setLiveCameraIds((prev) => {
+                    if (prev.size === running.size && [...prev].every((id) => running.has(id))) {
+                        return prev;
+                    }
+                    return running;
+                });
+            } catch {
+                // Backend unreachable — clear the set so cards flip back to offline.
+                if (!cancelled) setLiveCameraIds(new Set());
+            }
+        };
+        refresh();
+        const timer = window.setInterval(refresh, 3000);
+        // CameraPage fires this event right after Go Live / Stop so the
+        // dashboard flips instantly instead of waiting for the next poll.
+        const onHint = () => { void refresh(); };
+        window.addEventListener('ui:camera-status-changed', onHint);
+        return () => {
+            cancelled = true;
+            window.clearInterval(timer);
+            window.removeEventListener('ui:camera-status-changed', onHint);
+        };
+    }, []);
+    // Connect to backend SSE for real-time YOLO detection alerts.
+    // The alert feed shows ONLY these real backend events — we removed the
+    // demo/mock alerts that used to be mixed in, so what you see is what the
+    // detector actually produced.
     const { backendAlerts, isConnected: backendConnected } = useBackendAlerts();
-    // Merge mock alerts (demo data) with real backend alerts (from YOLO detections).
-    // Backend alerts appear at the top since they have the most recent timestamps.
     const alertEvents = useMemo(() => {
-        const mockAlerts = buildAlertEvents(cameras, alertStatusOverrides);
-        return [...backendAlerts, ...mockAlerts].sort((a, b) => b.time.getTime() - a.time.getTime());
-    }, [cameras, alertStatusOverrides, backendAlerts]);
+        return backendAlerts
+            .map((a) => ({ ...a, status: alertStatusOverrides[a.id] ?? a.status }))
+            .sort((a, b) => b.time.getTime() - a.time.getTime());
+    }, [backendAlerts, alertStatusOverrides]);
     const filteredCameras = useMemo(() => {
         const q = searchQuery.trim().toLowerCase();
         if (!q)
@@ -346,6 +400,7 @@ export default function App() {
     const cameraPageProps = {
         cameras: filteredCameras,
         groups,
+        liveCameraIds,
         onSaveDetails: saveCameraDetails,
         onTogglePin: togglePin,
         onRemove: removeCamera,

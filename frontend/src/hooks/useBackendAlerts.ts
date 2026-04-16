@@ -55,11 +55,32 @@ function mapLevel(riskLevel: string): string {
   return 'low';
 }
 
+// Keywords the backend considers "weapon-ish". Kept in sync with
+// backend/app/services/risk_engine.DANGEROUS_KEYWORDS — if a detected
+// class name contains any of these tokens we prefer the label "Weapon
+// detected (<class>)" so the feed reads naturally even when the model
+// uses exotic class names like "assault_rifle" or "kitchen knife".
+const WEAPON_TOKENS = [
+  'gun', 'pistol', 'handgun', 'rifle', 'shotgun', 'firearm', 'revolver',
+  'knife', 'blade', 'dagger', 'sword', 'machete',
+  'axe', 'hatchet', 'crowbar', 'bat', 'weapon',
+];
+
+function isWeaponClass(className: string): boolean {
+  const n = className.toLowerCase().replace(/[_-]/g, ' ');
+  return WEAPON_TOKENS.some((tok) => n.includes(tok));
+}
+
 /** Build a human-readable label from the detected objects. */
 function buildLabel(incident: BackendIncident): string {
   if (!incident.objects || incident.objects.length === 0) return 'Detection alert';
   const classes = [...new Set(incident.objects.map((o) => o.class_name))];
-  return classes.map((c) => c.charAt(0).toUpperCase() + c.slice(1) + ' detected').join(', ');
+  return classes
+    .map((c) => {
+      const pretty = c.charAt(0).toUpperCase() + c.slice(1);
+      return isWeaponClass(c) ? `Weapon detected (${pretty})` : `${pretty} detected`;
+    })
+    .join(', ');
 }
 
 /** Build a recommended action string based on risk level. */
@@ -72,12 +93,22 @@ function buildAction(incident: BackendIncident): string {
 /** Convert a backend incident into the frontend alert shape. */
 function toAlertEvent(incident: BackendIncident): AlertEvent {
   const cameraId = incident.objects?.[0]?.camera_id ?? 'unknown';
+  // Pretty-print the camera id ("front-door" → "Front Door") so the feed
+  // shows a human name instead of the slug. We fall back to the raw id
+  // if there's nothing to prettify.
+  const cameraLabel = cameraId === 'unknown'
+    ? 'Unknown camera'
+    : cameraId
+        .split(/[-_\s]+/)
+        .filter(Boolean)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .join(' ');
   return {
     id: `backend-${incident.id}`,
     cameraId,
     level: mapLevel(incident.risk_level),
     label: buildLabel(incident),
-    camera: `Camera ${cameraId}`,
+    camera: cameraLabel,
     time: new Date(incident.date_posted),
     status: incident.status === 'open' ? 'Open' : incident.status === 'acknowledged' ? 'Acknowledged' : 'Resolved',
     summary: incident.summary ?? 'Object detected by YOLO model.',

@@ -264,3 +264,57 @@
   width: 24px;
   height: 24px;
 }
+
+/* ── Add Camera card (the "+" tile at the end of the grid) ────────────────
+   This is shown alongside real CameraCards. It matches the same outer
+   dimensions (border, aspect ratio) so the grid stays aligned, but its
+   contents are a big plus icon and a short hint about supported sources. */
+.cameraCard.addCard {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
+  font: inherit;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.cameraCard.addCard:hover {
+  border-color: var(--accent);
+  color: var(--text-1);
+  background: var(--surface-raised);
+}
+
+.addCardInner {
+  flex: 1;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.addCardPlus {
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.cameraCard.addCard:hover .addCardPlus {
+  color: var(--accent);
+}
+
+.addCardLabel {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.addCardHint {
+  font-size: 11px;
+  color: var(--text-3);
+}
