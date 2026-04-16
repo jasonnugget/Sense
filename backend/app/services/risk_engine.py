@@ -93,19 +93,19 @@ def process_detection(detection: ObjectDetection):
     key = (detection.camera_id, detection.class_name.lower())
     if key not in candidates:
         candidates[key] = {
-            "frame_ids": [],
+            "detections": [],
             "last_incident_time": None,
         }
     candidate = candidates[key]
 
-    existing_ids = [fid for fid, _ in candidate["frame_ids"]]
+    existing_ids = {d.frame_id for d in candidate["detections"]}
     if detection.frame_id not in existing_ids:
-        candidate["frame_ids"].append((detection.frame_id, detection.timestamp))
+        candidate["detections"].append(detection)
 
     now = datetime.now(timezone.utc)
     cutoff = now - TIME_WINDOW
-    candidate["frame_ids"] = [
-        (fid, ts) for fid, ts in candidate["frame_ids"] if ts >= cutoff
+    candidate["detections"] = [
+        d for d in candidate["detections"] if d.timestamp >= cutoff
     ]
 
     # Cooldown guard: if we fired recently for this (camera, class), don't
@@ -116,16 +116,22 @@ def process_detection(detection: ObjectDetection):
         if now - candidate["last_incident_time"] < COOLDOWN:
             return None
 
-    if len(candidate["frame_ids"]) >= MIN_FRAMES:
+    if len(candidate["detections"]) >= MIN_FRAMES:
+        # Use the peak-confidence detection in the window to set the
+        # incident's risk level. Using the "last" detection (the one that
+        # tripped MIN_FRAMES) was wrong: a burst like (0.65, 0.90, 0.70)
+        # would have fired MEDIUM even though the model clearly saw the
+        # weapon at 0.90 (HIGH) within the same window.
+        peak = max(candidate["detections"], key=lambda d: d.confidence)
         candidate["last_incident_time"] = now
         # Clear the accumulated frames so the next incident requires a
         # fresh burst of MIN_FRAMES inside TIME_WINDOW rather than re-using
         # stale hits from before the cooldown.
-        candidate["frame_ids"] = []
+        candidate["detections"] = []
         return Create_Incident(
-            risk_level=compute_risk_level(detection.class_name, detection.confidence),
-            objects=[detection],
-            summary=f"{detection.class_name} detected on camera {detection.camera_id}",
+            risk_level=compute_risk_level(peak.class_name, peak.confidence),
+            objects=[peak],
+            summary=f"{peak.class_name} detected on camera {peak.camera_id}",
         )
 
     return None
