@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { absTime, relTime } from '../data/alerts';
 const LEVEL_LABEL = { high: 'High', medium: 'Medium', low: 'Low' };
-export default function AlertDetailsModal({ alert, onClose, onViewCamera, onOpenClip, onReviewAlert, reviewDecision, exitVariant, }) {
+export default function AlertDetailsModal({ alert, onClose, onViewCamera, onOpenClip, exitVariant, }) {
     const [renderedAlert, setRenderedAlert] = useState(null);
     const [closing, setClosing] = useState(false);
-    const [draftDecision, setDraftDecision] = useState(reviewDecision ?? null);
     useEffect(() => {
         if (alert) {
             setRenderedAlert(alert);
@@ -21,9 +20,6 @@ export default function AlertDetailsModal({ alert, onClose, onViewCamera, onOpen
         return () => window.clearTimeout(t);
     }, [alert, renderedAlert]);
     useEffect(() => {
-        setDraftDecision(reviewDecision ?? null);
-    }, [reviewDecision, renderedAlert?.id]);
-    useEffect(() => {
         if (!renderedAlert)
             return;
         const onKeyDown = (e) => { if (e.key === 'Escape')
@@ -38,11 +34,6 @@ export default function AlertDetailsModal({ alert, onClose, onViewCamera, onOpen
     }, [renderedAlert, onClose]);
     if (!renderedAlert)
         return null;
-    const handleDecision = (decision) => {
-        setDraftDecision(decision);
-        onReviewAlert(renderedAlert.id, decision);
-    };
-    const isReviewed = renderedAlert.status === 'Reviewed';
     return (<div className={`alertModalOverlay${closing ? ' is-closing' : ' is-open'}${closing && exitVariant === 'to-camera' ? ' is-routing-camera' : ''}`} role="dialog" aria-modal="true" aria-label="Alert details">
       <button className="alertModalBackdrop" onClick={onClose} aria-label="Close alert details"/>
 
@@ -76,29 +67,6 @@ export default function AlertDetailsModal({ alert, onClose, onViewCamera, onOpen
           <div className="alertModalCallout">
             <div className="alertModalLabel">Recommended action</div>
             <div className="alertModalText">{renderedAlert.action}</div>
-          </div>
-
-          
-          <div className="alertModalSection">
-            <div className="alertModalLabel">
-              Your assessment
-              {isReviewed && (<span style={{ fontFamily: 'var(--font)', letterSpacing: 0, textTransform: 'none', color: 'var(--accent)', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                  Reviewed
-                </span>)}
-            </div>
-            <div className="alertReviewGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <button type="button" className={`alertReviewCard false-alert${draftDecision === 'false-alert' ? ' selected' : ''}`} onClick={() => handleDecision('false-alert')} aria-pressed={draftDecision === 'false-alert'}>
-                <span className="alertReviewCardIcon" aria-hidden="true">✕</span>
-                <span className="alertReviewCardLabel">False alert</span>
-                <span className="alertReviewCardDesc">No real threat</span>
-              </button>
-              <button type="button" className={`alertReviewCard valid-alert${draftDecision === 'valid-alert' ? ' selected' : ''}`} onClick={() => handleDecision('valid-alert')} aria-pressed={draftDecision === 'valid-alert'}>
-                <span className="alertReviewCardIcon" aria-hidden="true">✓</span>
-                <span className="alertReviewCardLabel">Valid alert</span>
-                <span className="alertReviewCardDesc">Threat confirmed</span>
-              </button>
-            </div>
           </div>
         </div>
 

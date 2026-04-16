@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { absTime, relTime } from '../data/alerts';
 const LEVEL_LABEL = { high: 'High', medium: 'Medium', low: 'Low' };
@@ -12,23 +11,8 @@ function IconPlay() {
       <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
     </svg>);
 }
-export default function AlertDetailPanel({ alert, reviewDecision, onReviewAlert, onViewCamera, onOpenClip }) {
+export default function AlertDetailPanel({ alert, onViewCamera, onOpenClip }) {
     const navigate = useNavigate();
-    const [draftDecision, setDraftDecision] = useState(reviewDecision ?? null);
-    const [justReviewed, setJustReviewed] = useState(false);
-    useEffect(() => {
-        setDraftDecision(reviewDecision ?? null);
-        setJustReviewed(false);
-    }, [alert.id, reviewDecision]);
-    const handleDecision = (decision) => {
-        const isChanging = draftDecision === decision;
-        if (isChanging)
-            return;
-        setDraftDecision(decision);
-        setJustReviewed(true);
-        onReviewAlert(alert.id, decision);
-    };
-    const isReviewed = alert.status === 'Reviewed' || justReviewed;
     return (<div className="alertDetailPanel">
       
       <div className="alertDetailHeader">
@@ -36,9 +20,7 @@ export default function AlertDetailPanel({ alert, reviewDecision, onReviewAlert,
           <span className={`alertDetailLevel ${alert.level}`}>
             {LEVEL_LABEL[alert.level]}
           </span>
-          <span className={`alertDetailStatusPill${isReviewed ? ' reviewed' : ''}`}>
-            {isReviewed ? 'Reviewed' : alert.status}
-          </span>
+          <span className="alertDetailStatusPill">{alert.status}</span>
         </div>
 
         <h2 className="alertDetailTitle">{alert.label}</h2>
@@ -61,33 +43,10 @@ export default function AlertDetailPanel({ alert, reviewDecision, onReviewAlert,
           <p className="alertDetailText">{alert.summary}</p>
         </div>
 
-        
+
         <div className="alertDetailActionBox">
           <div className="alertDetailSectionLabel">Recommended action</div>
           <p className="alertDetailText">{alert.action}</p>
-        </div>
-
-        
-        <div className="alertDetailSection">
-          <div className="alertDetailSectionLabel">
-            Your assessment
-            {isReviewed && draftDecision && (<span className="alertDetailReviewedTag">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                Marked reviewed
-              </span>)}
-          </div>
-          <div className="alertReviewGrid">
-            <button type="button" className={`alertReviewCard false-alert${draftDecision === 'false-alert' ? ' selected' : ''}`} onClick={() => handleDecision('false-alert')} aria-pressed={draftDecision === 'false-alert'}>
-              <span className="alertReviewCardIcon" aria-hidden="true">✕</span>
-              <span className="alertReviewCardLabel">False alert</span>
-              <span className="alertReviewCardDesc">No real threat detected</span>
-            </button>
-            <button type="button" className={`alertReviewCard valid-alert${draftDecision === 'valid-alert' ? ' selected' : ''}`} onClick={() => handleDecision('valid-alert')} aria-pressed={draftDecision === 'valid-alert'}>
-              <span className="alertReviewCardIcon" aria-hidden="true">✓</span>
-              <span className="alertReviewCardLabel">Valid alert</span>
-              <span className="alertReviewCardDesc">Threat confirmed</span>
-            </button>
-          </div>
         </div>
       </div>
 

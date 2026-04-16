@@ -16,11 +16,10 @@ function IconShield() {
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>);
 }
-export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, reviewDecisions, searchQuery = '', onReviewAlert }) {
+export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, searchQuery = '' }) {
     const navigate = useNavigate();
     const [selectedAlertId, setSelectedAlertId] = useState(null);
     const [severityFilter, setSeverityFilter] = useState('all');
-    const [hideReviewed, setHideReviewed] = useState(false);
     const alerts = useMemo(() => {
         return allAlerts
             .filter((alert) => {
@@ -29,14 +28,8 @@ export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, revie
                 return true;
             return `${alert.label} ${alert.camera} ${alert.status} ${alert.summary}`.toLowerCase().includes(q);
         })
-            .filter((alert) => severityFilter === 'all' || alert.level === severityFilter)
-            .filter((alert) => {
-            if (!hideReviewed)
-                return true;
-            const isReviewed = alert.status === 'Reviewed' || !!reviewDecisions[alert.id];
-            return !isReviewed;
-        });
-    }, [allAlerts, searchQuery, severityFilter, hideReviewed, reviewDecisions]);
+            .filter((alert) => severityFilter === 'all' || alert.level === severityFilter);
+    }, [allAlerts, searchQuery, severityFilter]);
     useEffect(() => {
         if (!alerts.length) {
             setSelectedAlertId(null);
@@ -53,7 +46,6 @@ export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, revie
         medium: allAlerts.filter((a) => a.level === 'medium').length,
         low: allAlerts.filter((a) => a.level === 'low').length,
     }), [allAlerts, searchQuery]);
-    const reviewedCount = useMemo(() => allAlerts.filter((a) => a.status === 'Reviewed' || !!reviewDecisions[a.id]).length, [allAlerts, reviewDecisions]);
     const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null;
     const viewCamera = (alert) => {
         navigate(`/camera/${alert.cameraId}`, { state: { cameraTransition: 'zoom-card', fromAlert: true } });
@@ -75,12 +67,6 @@ export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, revie
             </button>))}
         </div>
 
-        <div className="alertsFilterRight">
-          {reviewedCount > 0 && (<span className="alertsResultCount">{reviewedCount} reviewed</span>)}
-          <button type="button" className={`alertsToggleBtn${hideReviewed ? ' active' : ''}`} onClick={() => setHideReviewed((v) => !v)}>
-            {hideReviewed ? 'Show reviewed' : 'Hide reviewed'}
-          </button>
-        </div>
       </div>
 
       
@@ -96,8 +82,7 @@ export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, revie
           <div className="alertsListScroll" role="list">
             {alerts.map((alert) => {
             const isSelected = alert.id === selectedAlertId;
-            const isReviewed = alert.status === 'Reviewed' || !!reviewDecisions[alert.id];
-            return (<button key={alert.id} type="button" role="listitem" className={`alertRow${isSelected ? ' selected' : ''}${isReviewed ? ' reviewed' : ''}`} onClick={() => setSelectedAlertId(alert.id)} aria-current={isSelected ? 'true' : undefined}>
+            return (<button key={alert.id} type="button" role="listitem" className={`alertRow${isSelected ? ' selected' : ''}`} onClick={() => setSelectedAlertId(alert.id)} aria-current={isSelected ? 'true' : undefined}>
                   <span className={`alertRowDot ${alert.level}`} aria-hidden="true"/>
                   <div className="alertRowBody">
                     <div className="alertRowLabel">{alert.label}</div>
@@ -109,27 +94,20 @@ export default function AlertsPage({ cameras: _cameras, alerts: allAlerts, revie
                   </div>
                   <div className="alertRowRight">
                     <span className="alertRowTime">{relTime(alert.time)}</span>
-                    {isReviewed && (<span className="alertRowCheck" aria-label="Reviewed">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                      </span>)}
                   </div>
                 </button>);
         })}
 
             {alerts.length === 0 && (<div className="alertsListEmpty">
                 <div className="alertsListEmptyIcon">—</div>
-                <div className="alertsListEmptyText">
-                  {hideReviewed
-                ? 'All alerts reviewed. Toggle "Show reviewed" to see them.'
-                : 'No alerts match your filters.'}
-                </div>
+                <div className="alertsListEmptyText">No alerts match your filters.</div>
               </div>)}
           </div>
         </div>
 
         
         <div className="alertsDetailCol">
-          {selectedAlert ? (<AlertDetailPanel alert={selectedAlert} reviewDecision={reviewDecisions[selectedAlert.id]} onReviewAlert={onReviewAlert} onViewCamera={viewCamera} onOpenClip={openClip}/>) : (<div className="alertsDetailEmpty">
+          {selectedAlert ? (<AlertDetailPanel alert={selectedAlert} onViewCamera={viewCamera} onOpenClip={openClip}/>) : (<div className="alertsDetailEmpty">
               <div className="alertsDetailEmptyIcon">
                 <IconShield />
               </div>

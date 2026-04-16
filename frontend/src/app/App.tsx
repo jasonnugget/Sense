@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Navigate, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import ActivityPanel from '../components/activityPanel';
 import AlertDetailsModal from '../components/AlertDetailsModal';
+import NotificationToaster from '../components/NotificationToaster';
 import MainPage from '../pages/MainPage';
 import CameraPage from '../pages/CameraPage';
 import AlertsPage from '../pages/AlertsPage';
@@ -444,7 +445,7 @@ export default function App() {
           <div className="routeSurface">
             <Routes>
               <Route path="/" element={<MainPage {...cameraPageProps}/>}/>
-              <Route path="/alerts" element={<AlertsPage cameras={cameras} alerts={alertEvents} reviewDecisions={alertReviewDecisions} searchQuery={searchQuery} onReviewAlert={reviewAlert}/>}/>
+              <Route path="/alerts" element={<AlertsPage cameras={cameras} alerts={alertEvents} searchQuery={searchQuery}/>}/>
               <Route path="/cameras" element={<CamerasPage {...cameraPageProps}/>}/>
               <Route path="/help" element={<Navigate to="/" replace/>}/>
               <Route path="/camera/:cameraId" element={<CameraPage cameras={filteredCameras}/>}/>
@@ -475,7 +476,9 @@ export default function App() {
         </div>
       </SettingsModal>
 
-      <AlertDetailsModal alert={homeModalAlert} onClose={closeHomeAlertModal} onViewCamera={viewCameraFromHomeAlert} onOpenClip={openClipFromHomeAlert} onReviewAlert={reviewAlert} reviewDecision={homeModalAlert ? alertReviewDecisions[homeModalAlert.id] : undefined} exitVariant={homeModalExitVariant}/>
+      <AlertDetailsModal alert={homeModalAlert} onClose={closeHomeAlertModal} onViewCamera={viewCameraFromHomeAlert} onOpenClip={openClipFromHomeAlert} exitVariant={homeModalExitVariant}/>
+
+      <NotificationToaster alerts={alertEvents} onOpenAlert={(id) => setHomeModalAlertId(id)}/>
 
     </div>);
 }
