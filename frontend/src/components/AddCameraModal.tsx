@@ -3,7 +3,7 @@ import SettingsModal from './SettingsModal';
 import './AddCameraModal.css';
 
 const SOURCE_TYPES = [
-    { value: 'webcam', label: 'Webcam' },
+    { value: 'local', label: 'Local camera' },
     { value: 'rtsp', label: 'RTSP Stream' },
     { value: 'ip', label: 'IP Camera (HTTP)' },
     { value: 'file', label: 'Video File' },
@@ -16,8 +16,11 @@ export default function AddCameraModal({ open, onClose, onSaveDetails, title = '
     const [newGroupName, setNewGroupName] = useState('');
 
     // Source config
-    const [sourceType, setSourceType] = useState('webcam');
-    const [webcamIndex, setWebcamIndex] = useState('0');
+    const [sourceType, setSourceType] = useState('local');
+    const [localDeviceIndex, setLocalDeviceIndex] = useState('0');
+    const [localDevices, setLocalDevices] = useState<MediaDeviceInfo[]>([]);
+    const [enumError, setEnumError] = useState<string | null>(null);
+    const [enumerating, setEnumerating] = useState(false);
     const [streamUrl, setStreamUrl] = useState('');
 
     useEffect(() => {
@@ -26,15 +29,50 @@ export default function AddCameraModal({ open, onClose, onSaveDetails, title = '
         setDraftLocation(initialLocation);
         setDraftGroupIds(initialGroupIds);
         setNewGroupName('');
-        setSourceType('webcam');
-        setWebcamIndex('0');
+        setSourceType('local');
+        setLocalDeviceIndex('0');
         setStreamUrl('');
+        setEnumError(null);
     }, [open, initialName, initialLocation, initialGroupIds]);
+
+    // Enumerate the device's video inputs when Local camera is selected.
+    // Labels are only populated after the user grants getUserMedia permission,
+    // so we briefly open a stream, grab the list, then release it.
+    useEffect(() => {
+        if (!open || sourceType !== 'local') return;
+        let cancelled = false;
+        let tempStream: MediaStream | null = null;
+        setEnumerating(true);
+        (async () => {
+            try {
+                tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                if (cancelled) return;
+                const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+                setLocalDevices(videoInputs);
+                setEnumError(null);
+                if (parseInt(localDeviceIndex, 10) >= videoInputs.length) {
+                    setLocalDeviceIndex('0');
+                }
+            } catch (err) {
+                if (cancelled) return;
+                setEnumError(err instanceof Error ? err.message : 'Could not access cameras');
+                setLocalDevices([]);
+            } finally {
+                if (tempStream) tempStream.getTracks().forEach((t) => t.stop());
+                if (!cancelled) setEnumerating(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+            if (tempStream) tempStream.getTracks().forEach((t) => t.stop());
+        };
+    }, [open, sourceType]);
 
     const selectedGroups = useMemo(() => groups.filter((g) => draftGroupIds.includes(g.id)), [groups, draftGroupIds]);
 
     const getSource = (): string | number => {
-        if (sourceType === 'webcam') return parseInt(webcamIndex, 10) || 0;
+        if (sourceType === 'local') return parseInt(localDeviceIndex, 10) || 0;
         return streamUrl.trim();
     };
 
@@ -84,11 +122,40 @@ export default function AddCameraModal({ open, onClose, onSaveDetails, title = '
 
         {/* Dynamic source input based on type */}
         <div className="modalField">
-          {sourceType === 'webcam' && (
+          {sourceType === 'local' && (
             <>
-              <label className="modalLabel" htmlFor="addCameraWebcamIndex">Webcam index</label>
-              <input id="addCameraWebcamIndex" type="number" min="0" value={webcamIndex} onChange={(e) => setWebcamIndex(e.target.value)} placeholder="0"/>
-              <span className="modalFieldHint">0 = default webcam, 1 = second camera, etc.</span>
+              <label className="modalLabel" htmlFor="addCameraLocalDevice">Local camera</label>
+              {enumError ? (
+                <>
+                  <input id="addCameraLocalDevice" type="number" min="0" value={localDeviceIndex} onChange={(e) => setLocalDeviceIndex(e.target.value)} placeholder="0"/>
+                  <span className="modalFieldHint" style={{ color: '#ef4444' }}>
+                    Couldn't list cameras ({enumError}). Enter an index manually — 0 is the default.
+                  </span>
+                </>
+              ) : enumerating ? (
+                <>
+                  <select id="addCameraLocalDevice" disabled>
+                    <option>Scanning for cameras…</option>
+                  </select>
+                  <span className="modalFieldHint">Grant camera access when prompted to see device names.</span>
+                </>
+              ) : localDevices.length === 0 ? (
+                <>
+                  <input id="addCameraLocalDevice" type="number" min="0" value={localDeviceIndex} onChange={(e) => setLocalDeviceIndex(e.target.value)} placeholder="0"/>
+                  <span className="modalFieldHint">No cameras detected. Enter an index manually (0 = default).</span>
+                </>
+              ) : (
+                <>
+                  <select id="addCameraLocalDevice" value={localDeviceIndex} onChange={(e) => setLocalDeviceIndex(e.target.value)}>
+                    {localDevices.map((d, i) => (
+                      <option key={d.deviceId || i} value={String(i)}>
+                        {d.label || `Camera ${i}`}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="modalFieldHint">Pick a camera detected on this device.</span>
+                </>
+              )}
             </>
           )}
           {sourceType === 'rtsp' && (
