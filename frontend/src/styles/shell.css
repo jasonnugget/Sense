@@ -1,0 +1,631 @@
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.topBar {
+  flex-shrink: 0;
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 1100;
+
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.topBar::before, .topBar::after { display: none !important; }
+
+.topBarLogo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 2px;
+}
+
+.topBarWordmark {
+  display: inline-block;
+  color: var(--text-1);
+}
+
+.topBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.topNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topNavLink {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  color: var(--text-3);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: border-color 0.13s ease, background 0.13s ease, color 0.13s ease;
+}
+
+.topNavLink:hover {
+  color: var(--text-1);
+}
+
+.topNavLink:not(.active):hover {
+  background: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  border-color: var(--border);
+}
+
+.topNavLink.active {
+  color: var(--text-1);
+  font-weight: 700;
+}
+
+.topActions { display: flex; align-items: center; gap: 10px; }
+
+.topSearch {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 13px;
+  font-family: var(--font);
+  width: 220px;
+  transition: border-color 0.13s, color 0.13s;
+  cursor: text;
+}
+.topSearch:hover { border-color: var(--border-bright); color: var(--text-2); }
+.topSearch:focus-within {
+  border-color: var(--accent-border);
+  color: var(--text-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.topSearchInput {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-1);
+  font: inherit;
+}
+
+.topSearchInput::placeholder {
+  color: var(--text-3);
+}
+
+.topSearchInput::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.topBarButton, .pillBtn {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  transition: all 0.13s;
+}
+.topBarButton:hover, .pillBtn:hover { border-color: var(--border-bright); color: var(--text-1); }
+
+.topBarButton.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.topBarButton.primary:hover {
+  background: color-mix(in oklch, var(--accent) 88%, oklch(0% 0 0) 12%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.appBody {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.activityPanelSlot {
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 40px;
+  box-sizing: border-box;
+  padding: 0;
+  will-change: width, padding;
+  transition:
+    width 200ms cubic-bezier(0.22, 0.8, 0.2, 1),
+    padding 200ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.activityPanelSlot.visible {
+  width: calc(var(--panel-w) + 14px + 10px);
+  padding: 14px 0 14px 14px;
+}
+
+.activityPanelSlotInner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  transform: translateX(-18px);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition:
+    transform 420ms cubic-bezier(0.22, 0.8, 0.2, 1),
+    opacity 300ms ease;
+}
+
+.activityPanelSlotInner.visible {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.activityPanel {
+  position: relative;
+  isolation: isolate;
+  width: var(--panel-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  padding: 24px 18px;
+  gap: 0;
+  margin: 0;
+  height: 100%;
+  min-height: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 0 18px rgba(0,0,0,0.12),
+    0 0 40px rgba(0,0,0,0.12);
+}
+
+.activityPanel::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 10px;
+  z-index: -1;
+  pointer-events: none;
+  border: 0;
+  background: rgba(6, 8, 14, 0.18);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.02),
+    0 0 0 2px rgba(255,255,255,0.012),
+    0 0 22px rgba(0,0,0,0.10);
+}
+
+.panelLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panelLabelCount {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-2);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 9px;
+}
+
+.panelDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.panelDividerRecent {
+  margin: 10px 0 12px;
+}
+
+.panelStatCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.panelStatCard:last-child { margin-bottom: 0; }
+
+.panelStatLeft { display: flex; align-items: center; gap: 10px; }
+
+.panelStatIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.panelStatLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.panelStatRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.panelStatValue {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.panelStatSub {
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.statusPip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.statusPip.online  { background: var(--accent); box-shadow: 0 0 5px rgba(61,217,164,0.5); }
+.statusPip.offline { background: var(--danger); box-shadow: 0 0 5px rgba(255,82,82,0.4); }
+
+.threatPill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 18px;
+  margin-bottom: 6px;
+  border: 1px solid transparent;
+  transition: opacity 0.13s, border-color 0.13s, background 0.13s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.threatPill:last-child { margin-bottom: 0; }
+.threatPill.high   { background: var(--danger-dim); }
+.threatPill.medium { background: var(--warning-dim); }
+.threatPill.low    { background: var(--success-dim); }
+
+.threatPillLeft { display: flex; align-items: center; gap: 8px; }
+
+.threatPillLabel  { font-size: 12px; font-weight: 600; color: var(--text-1); }
+.threatPillSub    { font-size: 10px; color: var(--text-3); }
+
+.threatPillCount {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.threatPill.high   .threatPillCount { color: var(--danger); }
+.threatPill.medium .threatPillCount { color: var(--warning); }
+.threatPill.low    .threatPillCount { color: var(--success); }
+
+.eventList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+
+.eventList::-webkit-scrollbar { width: 3px; }
+.eventList::-webkit-scrollbar-track { background: transparent; }
+.eventList::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+.eventList:hover::-webkit-scrollbar-thumb,
+.eventList:focus-within::-webkit-scrollbar-thumb { background: var(--border-bright); }
+
+.eventRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  border-radius: 16px;
+  transition: background 0.12s, border-color 0.12s;
+  cursor: default;
+  border: 0;
+  background: color-mix(in srgb, var(--surface) 96%, #000 4%);
+}
+.eventRow:hover { background: color-mix(in srgb, var(--surface-raised) 96%, #000 4%); }
+
+.eventRowInteractive {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eventRowInteractive:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 38%, white 8%);
+  outline-offset: 2px;
+}
+
+.eventInfo { flex: 1; min-width: 0; }
+.eventLabel  { font-size: 12px; font-weight: 500; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eventCamera { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; }
+
+.eventBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 0;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 52px;
+  text-align: center;
+}
+.eventBadge.high   { background: var(--danger-dim);  color: var(--danger); border: 1px solid rgba(255,82,82,0.18); }
+.eventBadge.medium { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(255,179,71,0.16); }
+.eventBadge.low    { background: var(--success-dim); color: var(--success); border: 1px solid color-mix(in oklch, var(--success) 22%, transparent); }
+
+.eventTime {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 42px;
+  text-align: right;
+}
+
+.contentArea {
+  flex: 1;
+  overflow: hidden;
+  padding: 14px 28px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.contentArea.homeContentArea {
+  padding-left: 12px;
+}
+
+.routeSurface {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.appContainer.routeAnimating.routeAnim-forward .routeSurface {
+  animation: routeContentEnterForward 420ms cubic-bezier(0.22, 0.8, 0.2, 1);
+  animation-name: routeContentEnterForward;
+}
+
+.appContainer.routeAnimating.routeAnim-backward .routeSurface {
+  animation: routeContentEnterBackward 420ms cubic-bezier(0.22, 0.8, 0.2, 1);
+  animation-name: routeContentEnterBackward;
+}
+
+.appContainer.routeAnimating.routeAnimProfile-heavy.routeAnim-forward .routeSurface {
+  animation: routeContentEnterHeavyForward 340ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnimProfile-heavy.routeAnim-backward .routeSurface {
+  animation: routeContentEnterHeavyBackward 340ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnim-forward .topBarLeft {
+  animation: topBarSlideLeft 380ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnim-forward .topActions {
+  animation: topBarSlideRight 380ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnim-backward .topBarLeft {
+  animation: topBarSlideRight 380ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnim-backward .topActions {
+  animation: topBarSlideLeft 380ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnimProfile-heavy.routeAnim-forward .topBarLeft {
+  animation: topBarSlideLeftSoft 300ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnimProfile-heavy.routeAnim-forward .topActions {
+  animation: topBarSlideRightSoft 300ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnimProfile-heavy.routeAnim-backward .topBarLeft {
+  animation: topBarSlideRightSoft 300ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.appContainer.routeAnimating.routeAnimProfile-heavy.routeAnim-backward .topActions {
+  animation: topBarSlideLeftSoft 300ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+@keyframes routeContentEnterForward {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes routeContentEnterBackward {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes routeContentEnterHeavyForward {
+  from {
+    opacity: 0.84;
+    transform: translateX(6px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes routeContentEnterHeavyBackward {
+  from {
+    opacity: 0.84;
+    transform: translateX(-6px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes routeContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes topBarSlideLeft {
+  from {
+    opacity: 0.7;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes topBarSlideRight {
+  from {
+    opacity: 0.7;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes topBarSlideLeftSoft {
+  from {
+    opacity: 0.82;
+    transform: translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes topBarSlideRightSoft {
+  from {
+    opacity: 0.82;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activityPanelSlot,
+  .activityPanelSlotInner {
+    transition: none;
+  }
+
+  .routeSurface,
+  .appContainer.routeAnimating .topBarLeft,
+  .appContainer.routeAnimating .topActions,
+  .alertModalOverlay .alertModalBackdrop,
+  .alertModalOverlay .alertModalCard {
+    animation: none !important;
+  }
+}
+

@@ -1,0 +1,156 @@
+.overviewStrip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.overviewCard {
+  position: relative;
+  overflow: visible;
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  padding: 20px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.13s, box-shadow 0.13s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 10px 20px rgba(0,0,0,0.18);
+}
+.overviewCard::before {
+  content: none;
+}
+.overviewCard:hover {
+  border-color: var(--border-bright);
+}
+
+.overviewCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.overviewCardLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.overviewCardIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  color: var(--text-1);
+}
+
+.overviewCardIcon-accent {
+  background: var(--accent-dim);
+}
+
+.overviewCardIcon-danger {
+  background: var(--danger-dim);
+}
+
+.overviewCardValue {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.overviewCardValue-danger {
+  color: var(--danger);
+}
+
+.overviewCardValue-statusAlert,
+.overviewCardValue-statusNormal {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.overviewCardValue-statusAlert {
+  color: var(--danger);
+}
+
+.overviewCardValue-statusNormal {
+  color: var(--accent);
+}
+
+.overviewCardSub {
+  font-size: 12px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dashboard {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  align-items: start;
+}
+
+.dashboard.compact {
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+.dashboard > .emptyState {
+  grid-column: 1 / -1;
+}
+
+.cameraFolderSection {
+  border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  padding: 10px;
+}
+
+.cameraFolderHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  padding: 4px 4px 8px;
+  color: var(--text-1);
+}
+
+.cameraFolderTitle {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.cameraFolderMeta {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cameraFolderGrid {
+  gap: 12px;
+}
+
+

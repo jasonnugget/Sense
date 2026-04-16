@@ -1,0 +1,150 @@
+
+:root[data-theme='dark'] .overviewCard,
+:root[data-theme='dark'] .cameraCard,
+:root[data-theme='dark'] .panelLabelCount,
+:root[data-theme='dark'] .sectionAction,
+:root[data-theme='dark'] .topSearch,
+:root[data-theme='dark'] .menuDropdown,
+:root[data-theme='dark'] .settingsCard,
+:root[data-theme='dark'] .segmented {
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 10px 22px rgba(0,0,0,0.22);
+}
+
+:root[data-theme='dark'] .contentPanel,
+:root[data-theme='dark'] .activityPanel {
+  border-color: rgba(255,255,255,0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 0 20px rgba(0,0,0,0.16),
+    0 0 44px rgba(0,0,0,0.16);
+}
+
+:root[data-theme='dark'] .contentPanel::before,
+:root[data-theme='dark'] .activityPanel::before {
+  background: rgba(6, 8, 14, 0.18);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.02),
+    0 0 0 2px rgba(255,255,255,0.012),
+    0 0 24px rgba(0,0,0,0.11);
+}
+
+:root[data-theme='dark'] .overviewCard:hover {
+  border-color: rgba(255,255,255,0.32);
+}
+
+:root[data-theme='dark'] .eventRow:hover,
+:root[data-theme='dark'] .sectionAction:hover,
+:root[data-theme='dark'] .topSearch:hover,
+:root[data-theme='dark'] .topSearch:focus-within {
+  border-color: rgba(255,255,255,0.3);
+}
+
+
+:root:not([data-theme='dark']) .contentPanel::before,
+:root:not([data-theme='dark']) .activityPanel::before {
+  content: none;
+}
+
+:root:not([data-theme='dark']) .contentPanel {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+:root:not([data-theme='dark']) .activityPanel {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+:root:not([data-theme='dark']) .overviewCard {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+:root:not([data-theme='dark']) .overviewCard:hover {
+  border-color: var(--border-bright);
+  box-shadow: var(--shadow-md);
+}
+
+:root:not([data-theme='dark']) .eventRow {
+  background: transparent;
+  box-shadow: none;
+}
+
+:root:not([data-theme='dark']) .eventRow:hover {
+  background: var(--surface-raised);
+}
+
+:root:not([data-theme='dark']) .topBar {
+  background: var(--surface);
+  border-bottom-color: var(--border);
+  box-shadow: 0 1px 0 var(--border) !important;
+}
+
+:root:not([data-theme='dark']) .topNavLink {
+  color: var(--text-3);
+}
+
+:root:not([data-theme='dark']) .topNavLink:hover {
+  color: var(--text-1);
+  background: var(--surface-raised);
+  border-color: var(--border);
+}
+
+:root:not([data-theme='dark']) .topNavLink.active {
+  color: var(--text-1);
+}
+
+:root:not([data-theme='dark']) .topSearch {
+  background: var(--bg);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+:root:not([data-theme='dark']) .topSearch:hover {
+  border-color: var(--border-bright);
+}
+
+:root:not([data-theme='dark']) .topBarButton {
+  background: var(--surface-raised);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+:root:not([data-theme='dark']) .sectionActionPrimary {
+  color: #fff;
+  background: var(--accent);
+  border-color: transparent;
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--accent) 35%, transparent);
+}
+
+:root:not([data-theme='dark']) .sectionActionPrimary:hover {
+  background: color-mix(in oklch, var(--accent) 88%, oklch(0% 0 0) 12%);
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--accent) 40%, transparent);
+}
+
+:root:not([data-theme='dark']) .cameraCard {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+:root:not([data-theme='dark']) .cameraCard:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+:root:not([data-theme='dark']) .menuButton {
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: var(--text-2);
+}
+
+:root:not([data-theme='dark']) .menuButton:hover {
+  background: var(--surface);
+  border-color: var(--border-bright);
+  color: var(--text-1);
+}
