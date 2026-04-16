@@ -224,12 +224,20 @@ export default function App() {
             return [...rest.filter(c => c.pinned), updated, ...rest.filter(c => !c.pinned)];
         });
     };
-    const removeCamera = (id) => {
-        // Best-effort: tell the backend to stop capturing this camera too,
-        // so a stale capture thread doesn't keep the device locked after
-        // the card is gone. We ignore the 409 "not running" error.
-        stopCamera(id).catch(() => undefined);
+    const removeCamera = async (id) => {
+        // Tell the backend to stop capturing this camera BEFORE we drop it
+        // from the list. We await so the capture thread fully releases the
+        // OS camera handle — otherwise the Mac green-light stays on for
+        // the remainder of the thread's join timeout after the card is
+        // already gone and the user thinks the webcam is still in use.
+        // 409 ("not running") is fine and just means it was already off.
+        try {
+            await stopCamera(id);
+        } catch {
+            // swallow 409 / network errors — we still want to remove the card
+        }
         setCameras(prev => prev.filter(c => c.id !== id));
+        window.dispatchEvent(new Event('ui:camera-status-changed'));
     };
     const addGroup = (name) => {
         const trimmed = name.trim();
@@ -448,7 +456,7 @@ export default function App() {
               <Route path="/alerts" element={<AlertsPage cameras={cameras} alerts={alertEvents} searchQuery={searchQuery}/>}/>
               <Route path="/cameras" element={<CamerasPage {...cameraPageProps}/>}/>
               <Route path="/help" element={<Navigate to="/" replace/>}/>
-              <Route path="/camera/:cameraId" element={<CameraPage cameras={filteredCameras}/>}/>
+              <Route path="/camera/:cameraId" element={<CameraPage cameras={cameras} liveCameraIds={liveCameraIds}/>}/>
             </Routes>
           </div>
         </div>

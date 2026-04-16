@@ -73,9 +73,6 @@ export default function MainPage({ cameras, groups, liveCameraIds, onSaveDetails
       <section className="contentPanel contentPanelCameras">
         <div className="sectionRow">
           <span className="sectionTitle">Cameras</span>
-          <div className="sectionActionsGroup">
-            <button className="sectionAction sectionActionPrimary" onClick={onAddCamera}>Add new +</button>
-          </div>
         </div>
 
         <div className="cameraGroupTabs" role="tablist" aria-label="Camera groups">

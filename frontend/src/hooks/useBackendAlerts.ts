@@ -55,32 +55,42 @@ function mapLevel(riskLevel: string): string {
   return 'low';
 }
 
-// Keywords the backend considers "weapon-ish". Kept in sync with
-// backend/app/services/risk_engine.DANGEROUS_KEYWORDS — if a detected
-// class name contains any of these tokens we prefer the label "Weapon
-// detected (<class>)" so the feed reads naturally even when the model
-// uses exotic class names like "assault_rifle" or "kitchen knife".
-const WEAPON_TOKENS = [
-  'gun', 'pistol', 'handgun', 'rifle', 'shotgun', 'firearm', 'revolver',
-  'knife', 'blade', 'dagger', 'sword', 'machete',
-  'axe', 'hatchet', 'crowbar', 'bat', 'weapon',
-];
+// Keyword buckets — kept in sync with the backend risk engine's
+// DANGEROUS_KEYWORDS. The buckets let us label firearms and bladed
+// weapons specifically instead of collapsing everything to the generic
+// "Weapon detected".
+const FIREARM_TOKENS = ['gun', 'pistol', 'handgun', 'rifle', 'shotgun', 'firearm', 'revolver'];
+const BLADE_TOKENS = ['knife', 'blade', 'dagger', 'sword', 'machete'];
+const IMPACT_TOKENS = ['axe', 'hatchet', 'crowbar', 'bat'];
 
-function isWeaponClass(className: string): boolean {
-  const n = className.toLowerCase().replace(/[_-]/g, ' ');
-  return WEAPON_TOKENS.some((tok) => n.includes(tok));
+function matchesAny(name: string, tokens: string[]): boolean {
+  const n = name.toLowerCase().replace(/[_-]/g, ' ');
+  return tokens.some((tok) => n.includes(tok));
 }
 
-/** Build a human-readable label from the detected objects. */
+function prettifyClass(className: string): string {
+  return className
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(' ');
+}
+
+/** Build a human-readable label for one detected class. */
+function labelForClass(className: string): string {
+  const pretty = prettifyClass(className);
+  if (matchesAny(className, FIREARM_TOKENS)) return `Firearm detected (${pretty})`;
+  if (matchesAny(className, BLADE_TOKENS)) return `Blade detected (${pretty})`;
+  if (matchesAny(className, IMPACT_TOKENS)) return `Weapon detected (${pretty})`;
+  if (className.toLowerCase().includes('weapon')) return `Weapon detected (${pretty})`;
+  return `${pretty} detected`;
+}
+
 function buildLabel(incident: BackendIncident): string {
   if (!incident.objects || incident.objects.length === 0) return 'Detection alert';
   const classes = [...new Set(incident.objects.map((o) => o.class_name))];
-  return classes
-    .map((c) => {
-      const pretty = c.charAt(0).toUpperCase() + c.slice(1);
-      return isWeaponClass(c) ? `Weapon detected (${pretty})` : `${pretty} detected`;
-    })
-    .join(', ');
+  return classes.map(labelForClass).join(', ');
 }
 
 /** Build a recommended action string based on risk level. */

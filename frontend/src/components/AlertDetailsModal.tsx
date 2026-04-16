@@ -64,10 +64,6 @@ export default function AlertDetailsModal({ alert, onClose, onViewCamera, onOpen
             <div className="alertModalText">{renderedAlert.summary}</div>
           </div>
 
-          <div className="alertModalCallout">
-            <div className="alertModalLabel">Recommended action</div>
-            <div className="alertModalText">{renderedAlert.action}</div>
-          </div>
         </div>
 
         

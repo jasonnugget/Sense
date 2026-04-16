@@ -136,9 +136,13 @@ export default function CameraCard({ id, name, location, preview, online = false
           )}
         </div>
 
-        <div className={`cameraStatusBadge${(backendLive || online || !!liveStream) ? ' online' : ' offline'}`} aria-label={backendLive ? 'Detecting' : (online || !!liveStream) ? 'Live' : 'Offline'}>
+        {/* Badge reflects backend detection state only — `online` is a stale
+            default-true flag that made every card claim it was "Live". Now
+            green "Live" only when the backend is actually detecting, red
+            "Offline" otherwise. */}
+        <div className={`cameraStatusBadge ${backendLive ? 'online' : 'offline'}`} aria-label={backendLive ? 'Live' : 'Offline'}>
           <span className="cameraStatusDot"/>
-          <span>{backendLive ? 'Detecting' : (online || !!liveStream) ? 'Live' : 'Offline'}</span>
+          <span>{backendLive ? 'Live' : 'Offline'}</span>
         </div>
 
         

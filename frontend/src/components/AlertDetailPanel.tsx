@@ -43,11 +43,6 @@ export default function AlertDetailPanel({ alert, onViewCamera, onOpenClip }) {
           <p className="alertDetailText">{alert.summary}</p>
         </div>
 
-
-        <div className="alertDetailActionBox">
-          <div className="alertDetailSectionLabel">Recommended action</div>
-          <p className="alertDetailText">{alert.action}</p>
-        </div>
       </div>
 
       

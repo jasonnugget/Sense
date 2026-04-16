@@ -61,15 +61,27 @@ def is_dangerous_class(class_name: str) -> bool:
 
 
 def compute_risk_level(class_name: str, confidence: float) -> RiskLevel:
-    """Guns always escalate to high; other weapons scale with confidence."""
+    """Risk level scales with confidence, with a safety floor for firearms.
+
+    Non-firearm weapons (knife, bat, axe, etc.):
+      >= 0.85  → high
+      >= 0.70  → medium
+      else     → low
+
+    Firearms (gun, pistol, rifle, shotgun, firearm, revolver):
+      same ladder, but clamped to a minimum of `medium`. A low-confidence
+      firearm detection is still treated seriously — never `low`.
+    """
     lowered = (class_name or "").lower()
-    if any(k in lowered for k in ("gun", "pistol", "rifle", "shotgun", "firearm", "revolver")):
-        return RiskLevel.high
+    is_firearm = any(
+        k in lowered for k in ("gun", "pistol", "rifle", "shotgun", "firearm", "revolver")
+    )
+
     if confidence >= 0.85:
         return RiskLevel.high
     if confidence >= 0.70:
         return RiskLevel.medium
-    return RiskLevel.low
+    return RiskLevel.medium if is_firearm else RiskLevel.low
 
 
 def process_detection(detection: ObjectDetection):
@@ -82,7 +94,6 @@ def process_detection(detection: ObjectDetection):
     if key not in candidates:
         candidates[key] = {
             "frame_ids": [],
-            "promoted": False,
             "last_incident_time": None,
         }
     candidate = candidates[key]
@@ -97,15 +108,25 @@ def process_detection(detection: ObjectDetection):
         (fid, ts) for fid, ts in candidate["frame_ids"] if ts >= cutoff
     ]
 
-    if len(candidate["frame_ids"]) >= MIN_FRAMES and not candidate["promoted"]:
-        if candidate["last_incident_time"] is None or (now - candidate["last_incident_time"]) >= COOLDOWN:
-            candidate["promoted"] = True
-            candidate["last_incident_time"] = now
-            return Create_Incident(
-                risk_level=compute_risk_level(detection.class_name, detection.confidence),
-                objects=[detection],
-                summary=f"{detection.class_name} detected on camera {detection.camera_id}",
-            )
+    # Cooldown guard: if we fired recently for this (camera, class), don't
+    # fire again until COOLDOWN has elapsed. This lets the same weapon
+    # re-trigger after the cooldown window instead of the old behavior
+    # where a once-promoted candidate never fired again.
+    if candidate["last_incident_time"] is not None:
+        if now - candidate["last_incident_time"] < COOLDOWN:
+            return None
+
+    if len(candidate["frame_ids"]) >= MIN_FRAMES:
+        candidate["last_incident_time"] = now
+        # Clear the accumulated frames so the next incident requires a
+        # fresh burst of MIN_FRAMES inside TIME_WINDOW rather than re-using
+        # stale hits from before the cooldown.
+        candidate["frame_ids"] = []
+        return Create_Incident(
+            risk_level=compute_risk_level(detection.class_name, detection.confidence),
+            objects=[detection],
+            summary=f"{detection.class_name} detected on camera {detection.camera_id}",
+        )
 
     return None
 
@@ -113,5 +134,4 @@ def process_detection(detection: ObjectDetection):
 def resolve_incident(camera_id: str, class_name: str):
     key = (camera_id, class_name.lower())
     if key in candidates:
-        candidates[key]["promoted"] = False
         candidates[key]["last_incident_time"] = datetime.now(timezone.utc)
