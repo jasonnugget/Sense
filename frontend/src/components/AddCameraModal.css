@@ -117,3 +117,9 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.modalFieldHint {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: -2px;
+}

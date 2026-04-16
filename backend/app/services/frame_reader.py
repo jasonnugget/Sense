@@ -1,46 +1,111 @@
+"""
+Frame reader — captures video from any source, runs YOLO, draws bounding boxes,
+and pushes annotated frames to the per-camera MJPEG stream buffer.
+
+Supports multiple camera sources simultaneously:
+  - Webcam index (0, 1, 2...)
+  - RTSP URL ("rtsp://user:pass@192.168.1.10:554/stream")
+  - IP camera URL ("http://192.168.1.10/video")
+  - Video file path ("demo.mp4")
+
+Each camera runs in its own thread with its own stop_event.
+The YOLO model is loaded once at startup and shared across all threads.
+"""
+
 import cv2
+import time
 from app.schemas.frame_meta import FrameMeta
 import uuid
 from datetime import datetime, timezone
 from collections import deque
-from app.services.detector import load_model, run_inference
+from app.services.detector import run_inference
 from app.services.risk_engine import process_detection
 from app.services.incident_manager import create_a_inc
 from app.routes.stream import publish
-import threading
+from app.services.video_stream import set_frame, clear_frame
 
-# This flag lets us tell the frame reader to stop from another thread
-# When /camera/stop is called, we set this to True and the loop exits
-stop_flag = threading.Event()
+# Colors for bounding boxes (BGR format for OpenCV)
+BOX_COLORS = {
+    "default": (0, 255, 0),    # green — safe objects
+    "knife":   (0, 0, 255),    # red — dangerous
+    "gun":     (0, 0, 255),    # red — dangerous
+}
+
+# RTSP/IP camera reconnection settings
+RTSP_MAX_RETRIES = 3
+RTSP_RETRY_DELAY = 2.0  # seconds between retries
 
 
-def frame_reader(source):
-    # Step 1: Open the camera/video source using OpenCV
-    camera = cv2.VideoCapture(source)
+def draw_detections(frame, detections):
+    """
+    Draws bounding boxes and labels on the frame for each detection.
+    Red boxes for dangerous objects (knife, gun), green for everything else.
+    """
+    for det in detections:
+        color = BOX_COLORS.get(det.class_name, BOX_COLORS["default"])
+        x, y, w, h = det.bbox.x, det.bbox.y, det.bbox.w, det.bbox.h
+        cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
 
-    # Step 2: Create a buffer to store recent frame metadata (keeps last 500)
+        label = f"{det.class_name} {det.confidence:.0%}"
+        (text_w, text_h), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+        cv2.rectangle(frame, (x, y - text_h - 10), (x + text_w + 4, y), color, -1)
+        cv2.putText(frame, label, (x + 2, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+    return frame
+
+
+def _is_stream_source(source) -> bool:
+    """Check if the source is a network stream (RTSP/HTTP) that may need reconnection."""
+    return isinstance(source, str) and (
+        source.startswith("rtsp://") or source.startswith("http://") or source.startswith("https://")
+    )
+
+
+def _open_camera(source, retries: int = 1):
+    """Try to open a camera source with retries for network streams."""
+    for attempt in range(retries):
+        camera = cv2.VideoCapture(source)
+        if camera.isOpened():
+            return camera
+        camera.release()
+        if attempt < retries - 1:
+            time.sleep(RTSP_RETRY_DELAY)
+    return None
+
+
+def frame_reader(camera_id: str, source, stop_event):
+    """
+    Main capture loop for one camera. Runs in a background thread.
+
+    Args:
+        camera_id: Unique identifier for this camera (e.g. "front-door")
+        source: Camera source — webcam index (0), RTSP URL, IP camera URL, or video file path
+        stop_event: threading.Event that signals this camera to stop
+    """
+    is_stream = _is_stream_source(source)
+    max_retries = RTSP_MAX_RETRIES if is_stream else 1
+
+    camera = _open_camera(source, retries=max_retries)
+    if camera is None:
+        raise RuntimeError(f"Camera '{camera_id}' could not open source: {source}")
+
     frame_meta_buffer = deque(maxlen=500)
 
-    # Step 3: Load the YOLO model so we can run object detection on each frame
-    load_model("models/SenseV2Training.pt")
-
-    # Step 4: Make sure the camera actually opened, otherwise stop here
-    if not camera.isOpened():
-        raise RuntimeError("Camera could not be opened")
-
     try:
-        # Step 5: Main loop - keep reading frames as long as the camera is open
-        # Also check stop_flag each iteration so /camera/stop can shut us down
-        while camera.isOpened() and not stop_flag.is_set():
+        while camera.isOpened() and not stop_event.is_set():
             ok, frame = camera.read()
+
             if not ok:
-                break
+                # For network streams, try to reconnect
+                if is_stream and not stop_event.is_set():
+                    camera.release()
+                    camera = _open_camera(source, retries=max_retries)
+                    if camera is None:
+                        break
+                    continue
+                else:
+                    break
 
-            # Step 6: Show the live camera feed in a window
-            cv2.imshow("Camera", frame)
-
-            # Step 7: Extract frame dimensions and build metadata for this frame
-            # Each frame gets a unique ID and a UTC timestamp so we can track it
             height, width = frame.shape[:2]
             meta = FrameMeta(
                 height=height,
@@ -52,37 +117,23 @@ def frame_reader(source):
                 content_type="image/bgr"
             )
 
-            # Step 8: Run YOLO inference on the frame
-            # Returns a list of ObjectDetection objects (one per detected object)
             detections = run_inference(frame, meta)
+            annotated = draw_detections(frame.copy(), detections)
 
-            # Step 9: Pass each detection through the risk engine
-            # The risk engine checks if:
-            #   - The object is dangerous (knife, gun)
-            #   - Confidence is above threshold (0.60)
-            #   - It has appeared in enough consecutive frames (3+ within 2 seconds)
-            #   - The cooldown period has passed (30 seconds between incidents for same object)
-            # If all conditions are met, it returns a Create_Incident; otherwise None
+            _, jpeg = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            set_frame(camera_id, jpeg.tobytes())
+
             for detection in detections:
                 incident_request = process_detection(detection)
-
-                # Step 10: If the risk engine triggered, create the incident and push it
-                # to the SSE stream so the frontend dashboard gets a live alert
                 if incident_request is not None:
                     new_incident = create_a_inc(incident_request)
                     publish(new_incident)
 
-            # Step 11: Save this frame's metadata to the buffer for reference
             frame_meta_buffer.append(meta.model_dump())
 
-            # Step 12: Allow the user to press 'q' to quit the camera feed
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            # ~30 FPS max — time.sleep instead of cv2.waitKey (no GUI on server)
+            time.sleep(0.033)
 
     finally:
-        # Step 13: Clean up - release the camera and close the display window
-        # This runs even if an error occurs, so we don't leave the camera locked
         camera.release()
-        cv2.destroyAllWindows()
-
-
+        clear_frame(camera_id)

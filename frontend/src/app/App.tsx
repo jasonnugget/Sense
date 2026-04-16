@@ -9,6 +9,7 @@ import CamerasPage from '../pages/CamerasPage';
 import SettingsModal from '../components/SettingsModal';
 import ThemeSegmented from '../components/ThemeSegmented';
 import { buildAlertEvents, relTime } from '../data/alerts';
+import useBackendAlerts from '../hooks/useBackendAlerts';
 import '../App.css';
 const PINNED_KEY = 'pinnedCameras';
 const GROUPS_KEY = 'cameraGroups';
@@ -175,14 +176,14 @@ export default function App() {
     const [cameras, setCameras] = useState(() => {
         const pinned = new Set(JSON.parse(localStorage.getItem(PINNED_KEY) || '[]'));
         return [
-            { id: 'parking-lot', name: 'Parking Lot', location: 'Exterior', pinned: pinned.has('parking-lot'), online: true, groupIds: ['parking-lot'] },
-            { id: 'front-door', name: 'Front Door', location: 'Home', pinned: pinned.has('front-door'), online: false, groupIds: [] },
-            { id: 'loading-dock', name: 'Loading Dock', location: 'Warehouse', pinned: pinned.has('loading-dock'), online: true, groupIds: ['perimeter'] },
-            { id: 'rear-gate', name: 'Rear Gate', location: 'Perimeter', pinned: pinned.has('rear-gate'), online: true, groupIds: ['perimeter'] },
-            { id: 'server-room', name: 'Server Room', location: 'IT Floor', pinned: pinned.has('server-room'), online: false, groupIds: [] },
-            { id: 'hallway-east', name: 'Hallway East', location: 'Level 2', pinned: pinned.has('hallway-east'), online: true, groupIds: [] },
-            { id: 'lobby', name: 'Lobby', location: 'Main Entrance', pinned: pinned.has('lobby'), online: true, groupIds: ['lobby'] },
-            { id: 'back-alley', name: 'Back Alley', location: 'Service Area', pinned: pinned.has('back-alley'), online: false, groupIds: ['perimeter'] },
+            { id: 'parking-lot', name: 'Parking Lot', location: 'Exterior', pinned: pinned.has('parking-lot'), online: true, groupIds: ['parking-lot'], source: 0 },
+            { id: 'front-door', name: 'Front Door', location: 'Home', pinned: pinned.has('front-door'), online: false, groupIds: [], source: 0 },
+            { id: 'loading-dock', name: 'Loading Dock', location: 'Warehouse', pinned: pinned.has('loading-dock'), online: true, groupIds: ['perimeter'], source: 0 },
+            { id: 'rear-gate', name: 'Rear Gate', location: 'Perimeter', pinned: pinned.has('rear-gate'), online: true, groupIds: ['perimeter'], source: 0 },
+            { id: 'server-room', name: 'Server Room', location: 'IT Floor', pinned: pinned.has('server-room'), online: false, groupIds: [], source: 0 },
+            { id: 'hallway-east', name: 'Hallway East', location: 'Level 2', pinned: pinned.has('hallway-east'), online: true, groupIds: [], source: 0 },
+            { id: 'lobby', name: 'Lobby', location: 'Main Entrance', pinned: pinned.has('lobby'), online: true, groupIds: ['lobby'], source: 0 },
+            { id: 'back-alley', name: 'Back Alley', location: 'Service Area', pinned: pinned.has('back-alley'), online: false, groupIds: ['perimeter'], source: 0 },
         ];
     });
     useEffect(() => {
@@ -191,16 +192,16 @@ export default function App() {
     useEffect(() => {
         localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
     }, [groups]);
-    const saveCameraDetails = (name, location, editingId, groupIds = []) => {
+    const saveCameraDetails = (name, location, editingId, groupIds = [], source: string | number = 0) => {
         const nextGroupIds = Array.from(new Set(groupIds));
         if (editingId) {
-            setCameras(prev => prev.map(c => c.id === editingId ? { ...c, name, location, groupIds: nextGroupIds } : c));
+            setCameras(prev => prev.map(c => c.id === editingId ? { ...c, name, location, groupIds: nextGroupIds, source } : c));
             return;
         }
         setCameras(prev => {
             const ids = new Set(prev.map(c => c.id));
             const id = uniqueId(slugify(name) || 'camera', ids);
-            return [...prev.filter(c => c.pinned), ...prev.filter(c => !c.pinned), { id, name, location, online: true, groupIds: nextGroupIds }];
+            return [...prev.filter(c => c.pinned), ...prev.filter(c => !c.pinned), { id, name, location, online: true, groupIds: nextGroupIds, source }];
         });
     };
     const togglePin = (id) => {
@@ -252,7 +253,14 @@ export default function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [alertStatusOverrides, setAlertStatusOverrides] = useState({});
     const [alertReviewDecisions, setAlertReviewDecisions] = useState({});
-    const alertEvents = useMemo(() => buildAlertEvents(cameras, alertStatusOverrides), [cameras, alertStatusOverrides]);
+    // Connect to backend SSE for real-time YOLO detection alerts
+    const { backendAlerts, isConnected: backendConnected } = useBackendAlerts();
+    // Merge mock alerts (demo data) with real backend alerts (from YOLO detections).
+    // Backend alerts appear at the top since they have the most recent timestamps.
+    const alertEvents = useMemo(() => {
+        const mockAlerts = buildAlertEvents(cameras, alertStatusOverrides);
+        return [...backendAlerts, ...mockAlerts].sort((a, b) => b.time.getTime() - a.time.getTime());
+    }, [cameras, alertStatusOverrides, backendAlerts]);
     const filteredCameras = useMemo(() => {
         const q = searchQuery.trim().toLowerCase();
         if (!q)

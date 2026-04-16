@@ -34,8 +34,8 @@ export default function MainPage({ cameras, groups, onSaveDetails, onTogglePin, 
             return cameras;
         return cameras.filter((c) => (c.groupIds ?? []).includes(selectedGroupId));
     }, [cameras, selectedGroupId]);
-    const handleSave = (name, location, groupIds) => {
-        onSaveDetails(name, location, editingId, groupIds);
+    const handleSave = (name, location, groupIds, source = 0) => {
+        onSaveDetails(name, location, editingId, groupIds, source);
         closeModal();
     };
     const openAssignGroups = (id) => {

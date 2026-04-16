@@ -6,18 +6,35 @@ from app.schemas.frame_meta import FrameMeta
 
 model = None
 
+import threading
+
+# Lock to ensure only one thread loads the model at a time
+_model_lock = threading.Lock()
+
+
 def load_model(model_path: str) -> dict:
-    p = Path(model_path)
-
-    if not p.exists():
-        raise FileNotFoundError(f"Model path does not exist: {model_path}")
-    if not p.is_file():
-        raise ValueError(f"Model path is not a file: {model_path}")
-    
+    """
+    Load the YOLO model. Idempotent — if the model is already loaded,
+    this returns immediately without reloading. Safe to call from multiple
+    camera threads; the lock ensures only one thread loads the model.
+    """
     global model
-    model = YOLO(str(p))
+    if model is not None:
+        return {"loaded": True, "model_path": model_path, "cached": True}
 
-    return {"loaded": True, "model_path": str(p)}
+    with _model_lock:
+        # Double-check after acquiring lock (another thread may have loaded it)
+        if model is not None:
+            return {"loaded": True, "model_path": model_path, "cached": True}
+
+        p = Path(model_path)
+        if not p.exists():
+            raise FileNotFoundError(f"Model path does not exist: {model_path}")
+        if not p.is_file():
+            raise ValueError(f"Model path is not a file: {model_path}")
+
+        model = YOLO(str(p))
+        return {"loaded": True, "model_path": str(p)}
 
 def run_inference(frame, frame_meta: FrameMeta) -> list[ObjectDetection]:
     if model is None:

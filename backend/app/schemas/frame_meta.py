@@ -12,4 +12,8 @@ class FrameMeta(BaseModel):
     source: str | int
 
 class CameraStartRequest(BaseModel):
+    camera_id: str
     source: str | int = 0
+
+class CameraStopRequest(BaseModel):
+    camera_id: str
